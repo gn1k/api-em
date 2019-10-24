@@ -4,7 +4,7 @@ LogAudit:
         file_name: "audit.log"
 
 # Sample database
-DB_Sample: "/root/go/src/github.com/gn1k/api-em/db_sample.sql"
+DB_Sample: "/etc/api-em/db_sample.sql"
 
 # Skeleton dir
 Skeleton: "/home/vinahost/cpanel3-skel/public_html"

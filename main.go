@@ -664,6 +664,8 @@ func postHandler(c *gin.Context) {
 
 	if cfg.Action == "create" {
 
+	}
+
 		cfg.map_cfgphp = make(map[string]string)
 	        cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] = cfg.User + "_db"
 	        cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS] = StringRand(16)
@@ -879,5 +881,5 @@ func main() {
 	}))
 
 	authorized.POST("/", postHandler)
-	router.RunTLS(":12345", "/root/go/src/github.com/gn1k/api-em/vinahost.crt", "/root/go/src/github.com/gn1k/api-em/vinahost.key")
+	router.RunTLS(":12345", "/etc/api-em/vinahost.crt", "/etc/api-em/vinahost.key")
 }
