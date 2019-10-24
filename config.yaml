@@ -1,0 +1,14 @@
+# Log audit configurations
+LogAudit:
+        dir: "/var/log/api-em"
+        file_name: "audit.log"
+
+# Sample database
+DB_Sample: "/root/go/src/github.com/gn1k/api-em/db_sample.sql"
+
+# Skeleton dir
+Skeleton: "/home/vinahost/cpanel3-skel/public_html"
+
+# Manage IP
+ListIPClient:
+        - 123.30.108.100
