@@ -83,20 +83,20 @@ const EMAIL_ADDRESS_CFG = "\"EMAIL_ADDRESS\": \"%s\""
 
 // Default cpanel var
 const (
-	Def_Ctemail	= "haond@vinahost.vn"
+	Def_Ctemail		= "haond@vinahost.vn"
 	Def_Pkgname	= "Start"
-	Def_Owner	= "vinahost"
+	Def_Owner		= "vinahost"
 )
 
 // Struct config API
 type ConfigAPI struct {
 	Log struct {
-		Dir string			`yaml:"dir"`
-		File_Name string		`yaml:"file_name"`
-	}					`yaml:"LogAudit"`
-	DB_Sample string			`yaml:"DB_Sample"`
+		Dir string				`yaml:"dir"`
+		File_Name string			`yaml:"file_name"`
+	}							`yaml:"LogAudit"`
+	DB_Sample string				`yaml:"DB_Sample"`
 	Skeleton string				`yaml:"Skeleton"`
-	Clients []string			`yaml:"ListIPClient"`
+	Clients []string				`yaml:"ListIPClient"`
 }
 
 // Struct Config php source
@@ -108,14 +108,14 @@ type ConfigInfo struct {
 	Domain		string			`json:"domain"`
 	Email		string			`json:"email"`
 	App_url		string			`json:"app_url"`
-	Pkgname		string			`json:"pkgname"`
+	Pkgname	string			`json:"pkgname"`
 	map_cfgphp	map[string]string
 	map_cfgstorage	map[string]string
 }
 
 // Struct Response
 type Response struct {
-	Success bool				`json:"success"`
+	Success bool					`json:"success"`
 	Message string				`json:"message"`
 }
 
@@ -130,6 +130,16 @@ var Clients_Map map[string]bool = make(map[string]bool)
 
 // Config API
 var Cfg_API ConfigAPI
+
+// Action map
+var Action_Map = map[string]bool {
+	"create": true;
+	"suspend": true;
+	"unsuspend": true;
+	"terminate": true;
+	"changepackage": true;
+	"changepassword": true;
+}
 
 //----------------------------------------------------------
 // Tool zone
@@ -217,16 +227,16 @@ func URL_encode(str string) string {
 // Read config file
 func readConfigAPI(file string) ConfigAPI {
 	f, err := os.Open("config.yaml")
-        if err != nil {
-                panic(err)
-        }
-
-        var cfgapi ConfigAPI
-        decoder := yaml.NewDecoder(f)
-        err = decoder.Decode(&cfgapi)
 	if err != nil {
 		panic(err)
-        }
+	}
+
+	var cfgapi ConfigAPI
+	decoder := yaml.NewDecoder(f)
+	err = decoder.Decode(&cfgapi)
+	if err != nil {
+		panic(err)
+	}
 	return cfgapi
 }
 
@@ -244,32 +254,32 @@ func addSlash(str string) string {
 // Rsync skeleton
 func rsyncSkeleton(target string) ([]byte, error) {
 	// Arguments
-        args := []string{
+	args := []string{
 		"-ar",
 		"--delete",
 		Cfg_API.Skeleton,
 		target,
-        }
+	}
 
-        // Run cmd
-        cmd := exec.Command(RSYNCCli, args...)
-        out, err := cmd.CombinedOutput()
-        return out, err	
+	// Run cmd
+	cmd := exec.Command(RSYNCCli, args...)
+	out, err := cmd.CombinedOutput()
+	return out, err	
 }
 
 // Chown skeleton
 func chownSkeleton(owner, group, target string) ([]byte, error) {
 	// Arguments
-        args := []string{
+	args := []string{
 		"-R",
-                owner + ":" + group,
-                target,
-        }
+		owner + ":" + group,
+		target,
+	}
 
-        // Run cmd
-        cmd := exec.Command(CHOWNCli, args...)
-        out, err := cmd.CombinedOutput()
-        return out, err	
+	// Run cmd
+	cmd := exec.Command(CHOWNCli, args...)
+	out, err := cmd.CombinedOutput()
+	return out, err	
 }
 
 // Map clients
@@ -280,7 +290,7 @@ func mapClients(cfgapi ConfigAPI) {
 }
 
 // Create account cpanel in WHM
-func createAccountCpanel(user, domain, ctemail, pkgname, owner, password string) ([]byte, error) {
+func createCpanelAccount(user, domain, ctemail, pkgname, owner, password string) ([]byte, error) {
 	if ctemail == "" {
 		ctemail = Def_Ctemail
 	}
@@ -291,23 +301,23 @@ func createAccountCpanel(user, domain, ctemail, pkgname, owner, password string)
 		owner = Def_Owner
 	}
 
-        // Arguments
-        args := []string{
+	// Arguments
+	args := []string{
 		"createacct",
-                "username=" + URL_encode(user),
-                "domain=" + URL_encode(domain),
-                "cgi=1",
-                "cpmod=paper_lantern",
-                "dkim=1",
-                "owner=" + URL_encode(owner),
-                "pkgname=" + URL_encode(pkgname),
-                "reseller=0",
+		"username=" + URL_encode(user),
+		"domain=" + URL_encode(domain),
+		"cgi=1",
+		"cpmod=paper_lantern",
+		"dkim=1",
+		"owner=" + URL_encode(owner),
+		"pkgname=" + URL_encode(pkgname),
+		"reseller=0",
 		"password=" + URL_encode(password),
 	}
 
 	// Run cmd
 	cmd := exec.Command(WHMAPI1, args...)
-        out, err := cmd.CombinedOutput()
+	out, err := cmd.CombinedOutput()
 	return out, err
 }
 
@@ -365,15 +375,15 @@ func grantAllPrivileges(user, db, dbuser string) ([]byte, error) {
 // Create SMTP email account
 func createEmailAccount(user, domain, email, pass string) ([]byte, error) {
 	// Arguments
-        args := []string{
-                "--user=" + URL_encode(user),
-                "Email",
-                "addpop",
-                "domain=" + URL_encode(domain),
-                "email=" + URL_encode(email),
+	args := []string{
+		"--user=" + URL_encode(user),
+		"Email",
+		"addpop",
+		"domain=" + URL_encode(domain),
+		"email=" + URL_encode(email),
 		"password=" + URL_encode(pass),
 		"quota=unlimited",
-        }
+	}
 
 	// Run cmd
 	cmd := exec.Command(CPAPI2, args...)
@@ -395,17 +405,17 @@ func importDatabase(db, sample string) ([]byte, error) {
 // Add alias/parked domain
 func addAliasDomain(user, domain string) ([]byte, error) {
 	// Arguments
-        args := []string{
-                "--user=" + URL_encode(user),
-                "Park",
+	args := []string{
+		"--user=" + URL_encode(user),
+		"Park",
 		"park",
-                "domain=" + URL_encode(domain),
-        }
+		"domain=" + URL_encode(domain),
+	}
 
 	// Run cmd
-        cmd := exec.Command(CPAPI2, args...)
-        out, err := cmd.CombinedOutput()
-        return out, err
+	cmd := exec.Command(CPAPI2, args...)
+	out, err := cmd.CombinedOutput()
+	return out, err
 }
 
 // Get exclude domain SSL
@@ -442,378 +452,28 @@ func doExcludeDomain(user, domain, alias string) ([]byte, error) {
 		"--user=" + URL_encode(user),
 		"SSL",
 		"add_autossl_excluded_domains",
-                "domains=" + list_exclude,
-        }
+		"domains=" + list_exclude,
+	}
 
-        // Run cmd
-        cmd := exec.Command(UAPI, args...)
-        out, err := cmd.CombinedOutput()
-        return out, err
+	// Run cmd
+	cmd := exec.Command(UAPI, args...)
+	out, err := cmd.CombinedOutput()
+	return out, err
 }
 
 // Do autossl check
 func doAutoSSLCheck(user string) ([]byte, error) {
 	// Arguments
-        args := []string{
-                "--user=" + URL_encode(user),
-                "SSL",
-                "start_autossl_check",
-        }
+	args := []string{
+		"--user=" + URL_encode(user),
+		"SSL",
+		"start_autossl_check",
+	}
 
 	// Run cmd
-        cmd := exec.Command(UAPI, args...)
-        out, err := cmd.CombinedOutput()
-        return out, err
-}
-
-// Check cpanel account exist
-func checkCPAcct(acc string) bool {
-	// Arguments
-        args := []string{
-                "listaccts",
-                "search=" + URL_encode(acc),
-                "searchtype=user",
-        }
-
-	// Run cmd
-        cmd := exec.Command(WHMAPI1, args...)
-        out, err := cmd.CombinedOutput()
-	if err != nil {
-		return false
-	}
-
-	// Sub string
-	sub := "user: " + acc
-	return strings.Contains(string(out), sub)
-}
-
-// Check domain exist
-func checkDomain(domain string) bool {
-	// Arguments
-        args := []string{
-                "listaccts",
-                "search=" + URL_encode(domain),
-                "searchtype=domain",
-		"searchmethod=exact",
-        }
-
-        // Run cmd
-        cmd := exec.Command(WHMAPI1, args...)
-        out, err := cmd.CombinedOutput()
-        if err != nil {
-                return false
-        }
-	// Sub string
-        sub := "domain: " + domain
-        return strings.Contains(string(out), sub)
-}
-
-// Get reason createAccountCpanel success or not
-func getReasonCreateAccountCpanel(out string) (string, bool) {
-	re := regexp.MustCompile(`.*reason: .*`)
-        reason := re.FindString(out)
-        success := "Account Creation Ok"
-        return reason, strings.Contains(out, success)
-}
-
-// Get reason createDatabase success or not
-func getReasonCreateDatabase(out string) (string, bool) {
-	re := regexp.MustCompile(`.*error: .*`)
-        reason := re.FindString(out)
-	if reason == "" {
-		return reason, true
-	}
-	return reason, false
-}
-
-// Get reason createDBUser success or not
-func getReasonCreateDBUser(out string) (string, bool) {
-	re := regexp.MustCompile(`.*error: .*`)
-        reason := re.FindString(out)
-        if reason == "" {
-                return reason, true
-        }
-        return reason, false
-}
-
-// Get reason grantAllPrivileges success or not
-func getReasonGrantAllPrivileges(out string) (string ,bool) {
-	re := regexp.MustCompile(`.*error: .*`)
-        reason := re.FindString(out)
-        if reason == "" {
-                return reason, true
-        }
-	re = regexp.MustCompile(`.*Cpanel::Exception.*`)
-	reason_2 := re.FindString(out)
-	if reason_2 != "" {
-		return reason, false
-	}
-        return reason, false
-}
-
-// Get reason addAliasDomain success or not
-func getReasonAddAliasDomain(out string) (string, bool) {
-        re := regexp.MustCompile(`.*reason: .*`)
-        reason := re.FindString(out)
-        success := "The system successfully parked"
-        return reason, strings.Contains(out, success)
-}
-
-// Get reason createEmailAccount success or not
-func getReasonCreateEmailAccount(out string) (string, bool) {
-	re := regexp.MustCompile(`.*error: .*`)
-        reason := re.FindString(out)
-        if reason == "" {
-                return reason, true
-        }
-        return reason, false
-}
-
-// Update configure
-func updateConfigure(cfg ConfigInfo) error {
-	// Phrase 1. Update admin/includes/config.php
-	sDec_cfgphp, _ := base64.StdEncoding.DecodeString(CONFIG_PHP)
-	out_cfgphp := fmt.Sprintf(string(sDec_cfgphp),
-		cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER],
-		cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS],
-		cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME],
-		cfg.App_url,
-	)
-
-	cfgphp_file := fmt.Sprintf(CONFIG_PATH, cfg.User)
-	err := ioutil.WriteFile(cfgphp_file, []byte(out_cfgphp), 0644)
-	if err != nil {
-		return err
-	}
-
-	// Phrase 2. Update admin/com/storage/iem_stash_storage.php
-	sDec_cfgstorage, _ := base64.StdEncoding.DecodeString(CONFIG_STORAGE)
-	prt_SMTP_USERNAME := fmt.Sprintf(SMTP_USERNAME_CFG, cfg.map_cfgstorage[SMTP_USERNAME])
-	prt_SMTP_PASSWORD := fmt.Sprintf(SMTP_PASSWORD_CFG, base64.StdEncoding.EncodeToString([]byte(cfg.map_cfgstorage[SMTP_PASSWORD])))
-	prt_EMAIL_ADDRESS := fmt.Sprintf(EMAIL_ADDRESS_CFG, cfg.map_cfgstorage[EMAIL_ADDRESS])
-
-	out_cfgstorage := strings.Replace(string(sDec_cfgstorage), SMTP_USERNAME_CFG, prt_SMTP_USERNAME, -1)
-	out_cfgstorage = strings.Replace(out_cfgstorage, SMTP_PASSWORD_CFG, prt_SMTP_PASSWORD, -1)
-	out_cfgstorage = strings.Replace(out_cfgstorage, EMAIL_ADDRESS_CFG, prt_EMAIL_ADDRESS, -1)
-
-	dat, err := Json_decode(out_cfgstorage)
-        if err != nil {
-                return err
-        }
-        out, err := phpserialize.Marshal(dat, nil)
-
-        out_cfg := "<?php /*" + string(out)
-	cfgstorage_file := fmt.Sprintf(IEM_STASH_STORAGE_PATH, cfg.User)
-        err = ioutil.WriteFile(cfgstorage_file, []byte(out_cfg), 0644)
-        return err
-}
-
-// Post handler
-func postHandler(c *gin.Context) {
-	// Prepare configure
-	var cfg ConfigInfo
-	var response Response
-
-	// Get IP client, if blocked
-	if Clients_Map[c.ClientIP()] == false {
-		response.Success = false
-		response.Message = "Your IP: " + c.ClientIP() + " has blocked"
-		writeAuditLog(response.Message)
-		c.JSON(http.StatusForbidden, response)
-		return
-	}
-
-	err := c.BindJSON(&cfg)
-	// Check bind json fail
-	if err != nil {
-		response.Success = false
-		response.Message = "Your json data parse failed."
-		writeAuditLog(response.Message)
-		c.JSON(http.StatusForbidden, response)
-		return
-	}
-
-	// Check lock map
-	if Lock_Map[cfg.User] {
-		response.Success = false
-		response.Message = "User: " + cfg.User + " on handler"
-		writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
-		return
-	}
-
-	// Check cpanel user exist
-	if checkCPAcct(cfg.User) {
-		response.Success = false
-		response.Message = "User: " + cfg.User + " exist."
-		writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
-		return
-	}
-
-	// Lock
-	Lock_Map[cfg.User] = true
-	// Defer unlock
-	defer func() {Lock_Map[cfg.User] = false}()
-
-	//cfg.User = "haond1"
-	//cfg.Pass = "xxxxx"
-	//cfg.Domain = "haond1.com"
-	//cfg.Email = "userhaond1.com"
-	//cfg.App_url = "https://12347.em.vinahost.vn"
-
-	if cfg.Action == "create" {
-
-	}
-
-		cfg.map_cfgphp = make(map[string]string)
-	        cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] = cfg.User + "_db"
-	        cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS] = StringRand(16)
-	        cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] = cfg.User + "_db"
-
-		cfg.map_cfgstorage = make(map[string]string)
-	cfg.map_cfgstorage[SMTP_USERNAME] = cfg.Email
-	cfg.map_cfgstorage[SMTP_PASSWORD] = StringRand(16)
-        cfg.map_cfgstorage[EMAIL_ADDRESS] = cfg.Email
-
-	// Create cpanel account
-	out, err := createAccountCpanel(cfg.User, cfg.Domain, cfg.Email, cfg.Pkgname, "vinahost", StringRand(16))
-	if err != nil {
-		response.Success = false
-		response.Message = "Error create account cpanel: " + err.Error() + "\n" + string(out)
-		writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
-		return
-	}
-
-	// Rsync skeleton
-	target := "/home/" + cfg.User + "/public_html/"
-	out, err = rsyncSkeleton(target)
-	if err != nil {
-		response.Success = false
-                response.Message = "Error rsync skeleton: " + err.Error() + "\n" + string(out)
-                writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
-                return
-        }
-
-	// Chown skeleton
-	out, err = chownSkeleton(cfg.User, cfg.User, target)
-        if err != nil {
-		response.Success = false
-                response.Message = "Error chown skeleton: " + err.Error() + "\n" + string(out)
-                writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
-                return
-        }
-
-	// Update configure php
-	err = updateConfigure(cfg)
-	if err != nil {
-		response.Success = false
-        	response.Message = "Error update configure php source: " + err.Error()
-                writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
-		return
-        }
-
-	// Create database
-	out, err = createDatabase(cfg.User, cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME])
-	if err != nil {
-		response.Success = false
-		response.Message = "Error create database: " + err.Error() + "\n" + string(out)
-                writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
-                return
-        }
-
-	// Create db user
-	out, err = createDBUser(cfg.User, cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER], cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS])
-	if err != nil {
-		response.Success = false
-                response.Message = "Error create dbuser: " + err.Error() + "\n" + string(out)
-		writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
-                return
-        }
-
-	// Grant all privileges
-        out, err = grantAllPrivileges(cfg.User, cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME], cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER])
-        if err != nil {
-		response.Success = false
-                response.Message = "Error grant all privileges: " + err.Error() + "\n" + string(out)
-                writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
-                return
-        }
-
-	// Import database
-	out, err = importDatabase(cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME], Cfg_API.DB_Sample)
-	if err != nil {
-		response.Success = false
-                response.Message = "Error grant all privileges: " + err.Error() + "\n" + string(out)
-                writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
-                return
-        }
-	
-	// Create alias
-	out, err = addAliasDomain(cfg.User, removeScheme(cfg.App_url))
-	if err != nil {
-		response.Success = false
-                response.Message = "Error create alias: " + err.Error() + "\n" + string(out)
-                writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
-		return
-        }
-
-	// Run autoSSL - do exclude domain
-	out, err = doExcludeDomain(cfg.User, cfg.Domain, removeScheme(cfg.App_url))
-	if err != nil {
-		response.Success = false
-		response.Message = "Error do exclude autoSSL: " + err.Error() + "\n" + string(out)
-                writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
-		return
-        }
-	// Run autoSSL - do autoSSL check
-	out, err = doAutoSSLCheck(cfg.User)
-	if err != nil {
-		response.Success = false
-		response.Message = "Error do run autoSSL: " + err.Error() + "\n" + string(out)
-                writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
-		return
-	}
-
-	// Create email account
-	stringSlice := strings.Split(cfg.Email, "@")
-        email_user := stringSlice[0]
-	out, err = createEmailAccount(cfg.User, cfg.Domain, email_user, cfg.Pass)
-
-	// Update email.users in database
-	// Create db connection
-	db := dbConn(cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER],
-		cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS],
-		cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME])	
-
-	// Get token and password hash
-	unique_token := generateUniqueToken(cfg.User)
-	pass_hash := generatePasswordHash(cfg.Pass, unique_token)
-	// Run update row
-	err = updateUserRow(db, cfg.User, unique_token, pass_hash, cfg.Email)
-	if err != nil {
-		response.Success = false
-		response.Message = "Error update token/password: " + err.Error()
-                writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
-		return
-	}
-	db.Close()
-
-	response.Success = true
-	response.Message = "Install Success."
-	c.JSON(http.StatusOK, response)
+	cmd := exec.Command(UAPI, args...)
+	out, err := cmd.CombinedOutput()
+	return out, err
 }
 
 // Create db connection
@@ -862,6 +522,648 @@ func writeAuditLog(msg string) {
 		panic(err)
 		return
 	}
+}
+
+// Check cpanel account exist
+func checkCPAcct(acc string) bool {
+	// Arguments
+	args := []string{
+		"listaccts",
+		"search=" + URL_encode(acc),
+		"searchtype=user",
+	}
+
+	// Run cmd
+	cmd := exec.Command(WHMAPI1, args...)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return false
+	}
+
+	// Sub string
+	sub := "user: " + acc
+	return strings.Contains(string(out), sub)
+}
+
+// Check cpanel account exist
+func checkCPAcctSuspended(acc string) bool {
+	// Arguments
+	args := []string{
+		"listsuspended",
+	}
+
+	// Run cmd
+	cmd := exec.Command(WHMAPI1, args...)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return false
+	}
+
+	// Sub string
+	sub := "user: " + acc
+	return strings.Contains(string(out), sub)
+}
+
+// Suspend cpanel account
+func suspendCpanelAccount(acc, reason string) ([]byte, error) {
+	// Arguments
+	args := []string{
+		"suspendacct",
+		"user=" + URL_encode(user),
+		"reason=" + URL_encode(reason),
+	}
+
+	// Run cmd
+	cmd := exec.Command(WHMAPI1, args...)
+	out, err := cmd.CombinedOutput()
+	return out, err
+}
+
+// Unsuspend cpanel account
+func unsuspendCpanelAccount(acc string) ([]byte, error) {
+	// Arguments
+	args := []string{
+		"unsuspendacct",
+		"user=" + URL_encode(user),
+	}
+
+	// Run cmd
+	cmd := exec.Command(WHMAPI1, args...)
+	out, err := cmd.CombinedOutput()
+	return out, err
+}
+
+// Terminate/Remove cpanel account
+func removeCpanelAccount(acc string) ([]byte, error) {
+	// Arguments
+	args := []string{
+		"removeacct",
+		"user=" + URL_encode(user),
+	}
+
+	// Run cmd
+	cmd := exec.Command(WHMAPI1, args...)
+	out, err := cmd.CombinedOutput()
+	return out, err
+}
+
+// Check domain exist
+func checkDomain(domain string) bool {
+	// Arguments
+	args := []string{
+		"listaccts",
+		"search=" + URL_encode(domain),
+		"searchtype=domain",
+		"searchmethod=exact",
+	}
+
+	// Run cmd
+	cmd := exec.Command(WHMAPI1, args...)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return false
+	}
+	// Sub string
+	sub := "domain: " + domain
+	return strings.Contains(string(out), sub)
+}
+
+// Get reason createCpanelAccount success or not
+func getReasonCreateCpanelAccount(out string) (string, bool) {
+	re := regexp.MustCompile(`.*reason: .*`)
+	reason := re.FindString(out)
+	success := "Account Creation Ok"
+	return reason, strings.Contains(out, success)
+}
+
+// Get reason suspendCpanelAccount success or not
+func getReasonSuspendCpanelAccount(out string) (string, bool) {
+	re := regexp.MustCompile(`.*reason: .*`)
+	reason := re.FindString(out)
+	success := "reason: OK"
+	return reason, strings.Contains(out, success)
+}
+
+// Get reason unsuspendCpanelAccount success or not
+func getReasonUnsuspendCpanelAccount(out string) (string, bool) {
+	re := regexp.MustCompile(`.*reason: .*`)
+	reason := re.FindString(out)
+	success := "reason: OK"
+	return reason, strings.Contains(out, success)
+}
+
+// Get reason removeCpanelAccount success or not
+func getReasonRemoveCpanelAccount(out string) (string, bool) {
+	re := regexp.MustCompile(`.*reason: .*`)
+	reason := re.FindString(out)
+	success := "reason: OK"
+	return reason, strings.Contains(out, success)
+}
+
+// Get reason createDatabase success or not
+func getReasonCreateDatabase(out string) (string, bool) {
+	re := regexp.MustCompile(`.*error: .*`)
+	reason := re.FindString(out)
+	if reason == "" {
+		return reason, true
+	}
+	return reason, false
+}
+
+// Get reason createDBUser success or not
+func getReasonCreateDBUser(out string) (string, bool) {
+	re := regexp.MustCompile(`.*error: .*`)
+	reason := re.FindString(out)
+	if reason == "" {
+		return reason, true
+	}
+	return reason, false
+}
+
+// Get reason grantAllPrivileges success or not
+func getReasonGrantAllPrivileges(out string) (string ,bool) {
+	re := regexp.MustCompile(`.*error: .*`)
+	reason := re.FindString(out)
+	if reason == "" {
+		return reason, true
+	}
+	re = regexp.MustCompile(`.*Cpanel::Exception.*`)
+	reason_2 := re.FindString(out)
+	if reason_2 != "" {
+		return reason, false
+	}
+	return reason, false
+}
+
+// Get reason addAliasDomain success or not
+func getReasonAddAliasDomain(out string) (string, bool) {
+	re := regexp.MustCompile(`.*reason: .*`)
+	reason := re.FindString(out)
+	success := "The system successfully parked"
+	return reason, strings.Contains(out, success)
+}
+
+// Get reason createEmailAccount success or not
+func getReasonCreateEmailAccount(out string) (string, bool) {
+	re := regexp.MustCompile(`.*error: .*`)
+	reason := re.FindString(out)
+	if reason == "" {
+		return reason, true
+	}
+	return reason, false
+}
+
+// Update configure
+func updateConfigure(cfg ConfigInfo) error {
+	// Phrase 1. Update admin/includes/config.php
+	sDec_cfgphp, _ := base64.StdEncoding.DecodeString(CONFIG_PHP)
+	out_cfgphp := fmt.Sprintf(string(sDec_cfgphp),
+		cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER],
+		cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS],
+		cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME],
+		cfg.App_url,
+	)
+
+	cfgphp_file := fmt.Sprintf(CONFIG_PATH, cfg.User)
+	err := ioutil.WriteFile(cfgphp_file, []byte(out_cfgphp), 0644)
+
+	// Phrase 2. Update admin/com/storage/iem_stash_storage.php
+	sDec_cfgstorage, _ := base64.StdEncoding.DecodeString(CONFIG_STORAGE)
+	prt_SMTP_USERNAME := fmt.Sprintf(SMTP_USERNAME_CFG, cfg.map_cfgstorage[SMTP_USERNAME])
+	prt_SMTP_PASSWORD := fmt.Sprintf(SMTP_PASSWORD_CFG, base64.StdEncoding.EncodeToString([]byte(cfg.map_cfgstorage[SMTP_PASSWORD])))
+	prt_EMAIL_ADDRESS := fmt.Sprintf(EMAIL_ADDRESS_CFG, cfg.map_cfgstorage[EMAIL_ADDRESS])
+
+	out_cfgstorage := strings.Replace(string(sDec_cfgstorage), SMTP_USERNAME_CFG, prt_SMTP_USERNAME, -1)
+	out_cfgstorage = strings.Replace(out_cfgstorage, SMTP_PASSWORD_CFG, prt_SMTP_PASSWORD, -1)
+	out_cfgstorage = strings.Replace(out_cfgstorage, EMAIL_ADDRESS_CFG, prt_EMAIL_ADDRESS, -1)
+
+	dat, err := Json_decode(out_cfgstorage)
+	if err != nil {
+		return err
+	}
+	out, err := phpserialize.Marshal(dat, nil)
+
+	out_cfg := "<?php /*" + string(out)
+	cfgstorage_file := fmt.Sprintf(IEM_STASH_STORAGE_PATH, cfg.User)
+	err = ioutil.WriteFile(cfgstorage_file, []byte(out_cfg), 0644)
+	return err
+}
+
+// Post handler
+func postHandler(c *gin.Context) {
+	// Prepare configure
+	var cfg ConfigInfo
+	var response Response
+
+	// Get IP client, if blocked
+	if Clients_Map[c.ClientIP()] == false {
+		response.Success = false
+		response.Message = "Your IP: " + c.ClientIP() + " has blocked"
+		writeAuditLog(response.Message)
+		c.JSON(http.StatusForbidden, response)
+		return
+	}
+
+	err := c.BindJSON(&cfg)
+	// Check bind json fail
+	if err != nil {
+		response.Success = false
+		response.Message = "Your json data parse failed."
+		writeAuditLog(response.Message)
+		c.JSON(http.StatusForbidden, response)
+		return
+	}
+
+	// Check post action support
+	if Action_Map[cfg.Action] != true {
+		response.Success = false
+		response.Message = "Post action: " + cfg.Action + " not allow."
+		writeAuditLog(response.Message)
+		c.JSON(http.StatusOK, response)
+		return
+	}
+
+	// Check lock map
+	if Lock_Map[cfg.User] {
+		response.Success = false
+		response.Message = "Error user: " + cfg.User + " on handle."
+		writeAuditLog(response.Message)
+		c.JSON(http.StatusOK, response)
+		return
+	}
+
+	// Lock
+	Lock_Map[cfg.User] = true
+	// Defer unlock
+	defer func() {delete(Lock_Map, cfg.User)}()
+
+	//cfg.User = "haond1"
+	//cfg.Pass = "xxxxx"
+	//cfg.Domain = "haond1.com"
+	//cfg.Email = "userhaond1.com"
+	//cfg.App_url = "https://12347.em.vinahost.vn"
+
+	// Action create
+	if cfg.Action == "create" {
+		// Generate configure
+		cfg.map_cfgphp = make(map[string]string)
+		cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] = cfg.User + "_db"
+		cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS] = StringRand(16)
+		cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] = cfg.User + "_db"
+
+		cfg.map_cfgstorage = make(map[string]string)
+		cfg.map_cfgstorage[SMTP_USERNAME] = cfg.Email
+		cfg.map_cfgstorage[SMTP_PASSWORD] = StringRand(16)
+		cfg.map_cfgstorage[EMAIL_ADDRESS] = cfg.Email
+
+		// Create cpanel account
+		out, err := createCpanelAccount(cfg.User, cfg.Domain, cfg.Email, cfg.Pkgname, "vinahost", StringRand(16))
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error create account cpanel: " + cfg.User + ", " + err.Error()
+			} else {
+				response.Message = "Error create account cpanel: " + cfg.User + ", " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		// Check create cpanel account false
+		out, check := getReasonCreateCpanelAccount(out)
+		if check == false {
+			response.Success = false
+			response.Message = "Error create account cpanel: " + cfg.User + ", " + string(out)
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		} else {
+			response.Message = "Success create account cpanel: " + cfg.User
+			writeAuditLog(response.Message)
+		}
+
+		// Rsync skeleton
+		target := "/home/" + cfg.User + "/public_html/"
+		out, err = rsyncSkeleton(target)
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error rsync skeleton: " + target + ", " + err.Error()
+			} else {
+				response.Message = "Error rsync skeleton: " + target + ", " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		} else {
+			response.Message = "Success rsync skeleton: " + target
+			writeAuditLog(response.Message)
+		}
+
+		// Chown skeleton
+		out, err = chownSkeleton(cfg.User, cfg.User, target)
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error chown skeleton: " + err.Error()
+			} else {
+				response.Message = "Error chown skeleton: " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		} else {
+			response.Message = "Success chown skeleton: "
+			writeAuditLog(response.Message)
+		}
+
+		// Update configure php
+		err = updateConfigure(cfg)
+		if err != nil {
+			response.Success = false
+			response.Message = "Error update configure php source: " + err.Error()
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		} else {
+			response.Message = "Success update configure php source: "
+			writeAuditLog(response.Message)
+		}
+
+		// Create database
+		out, err = createDatabase(cfg.User, cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME])
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error create database: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " + err.Error()
+			} else {
+				response.Message = "Error create database: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		// Check create database false
+		out, check = getReasonCreateDatabase(out)
+		if check == false {
+			response.Success = false
+			response.Message = "Error create database: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " + string(out)
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		} else {
+			response.Message = "Success create database: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME]
+			writeAuditLog(response.Message)
+		}
+
+		// Create db user
+		out, err = createDBUser(cfg.User, cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER], cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS])
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error create dbuser: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] + ", " + err.Error()
+			} else {
+				response.Message = "Error create dbuser: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] + ", " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		// Check create db user false
+		out, check = getReasonCreateDBUser(out)
+		if check == false {
+			response.Success = false
+			response.Message = "Error create dbuser: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] + ", " + string(out)
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		} else {
+			response.Message = "Success create dbuser: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER]
+			writeAuditLog(response.Message)
+		}
+
+		// Grant all privileges
+		out, err = grantAllPrivileges(cfg.User, cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME], cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER])
+		if err != nil {
+			response.Success = false
+			response.Message = "Error grant all privileges: " +
+							cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER]) +
+							"to database " +
+							cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " +
+							err.Error() + "\n" + string(out)
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		// Check grant all privileges false
+		out, check = getReasonGrantAllPrivileges(out)
+		if check == false {
+			response.Success = false
+			response.Message = "Error grant all privileges: user " +
+							cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER]) +
+							"to database " +
+							cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " +
+							string(out)
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		} else {
+			response.Message = "Success grant all privileges: user " +
+							cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER]) +
+							"to database " +
+							cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME]
+			writeAuditLog(response.Message)
+		}
+
+		// Import database
+		out, err = importDatabase(cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME], Cfg_API.DB_Sample)
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error import database: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " + err.Error()
+			} else {
+				response.Message = "Error import database: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		} else {
+			response.Message = "Success import database: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME]
+			writeAuditLog(response.Message)
+		}
+		
+		// Create alias
+		out, err = addAliasDomain(cfg.User, removeScheme(cfg.App_url))
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error create alias: " + err.Error()
+			} else {
+				response.Message = "Error create alias: " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+
+		// Run autoSSL - do exclude domain
+		out, err = doExcludeDomain(cfg.User, cfg.Domain, removeScheme(cfg.App_url))
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error do exclude autoSSL: " + err.Error()
+			} else {
+				response.Message = "Error do exclude autoSSL: " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		// Run autoSSL - do autoSSL check
+		out, err = doAutoSSLCheck(cfg.User)
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error do run autoSSL: " + err.Error()
+			} else {
+				response.Message = "Error do run autoSSL: " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+
+		// Create email account
+		stringSlice := strings.Split(cfg.Email, "@")
+		email_user := stringSlice[0]
+		out, err = createEmailAccount(cfg.User, cfg.Domain, email_user, cfg.Pass)
+
+		// Update email.users in database
+		// Create db connection
+		db := dbConn(cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER],
+			cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS],
+			cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME])	
+
+		// Get token and password hash
+		unique_token := generateUniqueToken(cfg.User)
+		pass_hash := generatePasswordHash(cfg.Pass, unique_token)
+		// Run update row
+		err = updateUserRow(db, cfg.User, unique_token, pass_hash, cfg.Email)
+		if err != nil {
+			response.Success = false
+			response.Message = "Error update token/password: " + err.Error()
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		db.Close()
+
+		// Announce success
+		response.Success = true
+		response.Message = "Install success: " + cfg.User + "/" + cfg.Domain
+		writeAuditLog(response.Message)
+		c.JSON(http.StatusOK, response)
+		return
+	}
+
+	// Action suspend
+	if cfg.Action == "suspend" {
+		// Suspend cpanel account
+		out, err := suspendCpanelAccount(cfg.User, cfg.Reason)
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error suspend account cpanel: " + cfg.User + ", " + err.Error()
+			} else {
+				response.Message = "Error suspend account cpanel: " + cfg.User + ", " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		// Check create cpanel account false
+		out, check := getReasonSuspendCpanelAccount(out)
+		if check == false {
+			response.Success = false
+			response.Message = "Error suspend account cpanel: " + cfg.User + ", " + string(out)
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		} else {
+			response.Success = true
+			response.Message = "Success suspend account cpanel: " + cfg.User
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+	}
+
+	// Action unsuspend
+	if cfg.Action == "unsuspend" {
+		// Unsuspend cpanel account
+		out, err := unsuspendCpanelAccount(cfg.User)
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error unsuspend account cpanel: " + cfg.User + ", " + err.Error()
+			} else {
+				response.Message = "Error unsuspend account cpanel: " + cfg.User + ", " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		// Check create cpanel account false
+		out, check := getReasonUnsuspendCpanelAccount(out)
+		if check == false {
+			response.Success = false
+			response.Message = "Error unsuspend account cpanel: " + cfg.User + ", " + string(out)
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		} else {
+			response.Success = true
+			response.Message = "Success unsuspend account cpanel: " + cfg.User
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+	}
+
+	// Action terminate/remove
+	if cfg.Action == "terminate" {
+		// Unsuspend cpanel account
+		out, err := removeCpanelAccount(cfg.User)
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error remove account cpanel: " + cfg.User + ", " + err.Error()
+			} else {
+				response.Message = "Error remove account cpanel: " + cfg.User + ", " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		// Check create cpanel account false
+		out, check := getReasonRemoveCpanelAccount(out)
+		if check == false {
+			response.Success = false
+			response.Message = "Error remove account cpanel: " + cfg.User + ", " + string(out)
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		} else {
+			response.Success = true
+			response.Message = "Success remove account cpanel: " + cfg.User
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+	}
+
+	// Action terminate
+
 }
 
 //-----------------------------------------------------
