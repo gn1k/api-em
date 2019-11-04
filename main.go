@@ -233,6 +233,7 @@ func removeWeirdCharacter(str string) string {
 	out = strings.Replace(out, ")", "", -1)
 	out = strings.Replace(out, "(", "", -1)
 	out = strings.Replace(out, ";", "", -1)
+	out = strings.Replace(out, " ", "", -1)
 	return out
 }
 
@@ -586,7 +587,7 @@ func suspendCpanelAccount(acc, reason string) ([]byte, error) {
 	// Arguments
 	args := []string{
 		"suspendacct",
-		"user=" + URL_encode(user),
+		"user=" + URL_encode(acc),
 		"reason=" + URL_encode(reason),
 	}
 
@@ -601,7 +602,7 @@ func unsuspendCpanelAccount(acc string) ([]byte, error) {
 	// Arguments
 	args := []string{
 		"unsuspendacct",
-		"user=" + URL_encode(user),
+		"user=" + URL_encode(acc),
 	}
 
 	// Run cmd
@@ -615,7 +616,7 @@ func removeCpanelAccount(acc string) ([]byte, error) {
 	// Arguments
 	args := []string{
 		"removeacct",
-		"user=" + URL_encode(user),
+		"user=" + URL_encode(acc),
 	}
 
 	// Run cmd
@@ -629,7 +630,7 @@ func changePackageCpanelAccount(acc, pkgname string) ([]byte, error) {
 	// Arguments
 	args := []string{
 		"changepackage",
-		"user=" + URL_encode(user),
+		"user=" + URL_encode(acc),
 		"pkg=" + URL_encode(pkgname),
 	}
 
@@ -654,18 +655,19 @@ func changePasswordDash(cpacc, pass string) error {
 
 	// Find config
 	// Database user
+	content_str := string(content)
 	re := regexp.MustCompile(define_dbuser)
-	cfg_dbuser := re.FindString(content)
+	cfg_dbuser := re.FindString(content_str)
 	res_dbuser := strings.Split(cfg_dbuser, define_dbuser)
-	res_dbuser = removeWeirdCharacter(res_dbuser)
+	res_dbuser = removeWeirdCharacter(res_dbuser[0])
 	re = regexp.MustCompile(define_dbname)
-	cfg_dbname := re.FindString(content)
+	cfg_dbname := re.FindString(content_str)
 	res_dbname := strings.Split(cfg_dbuser, define_dbuser)
-	res_dbname = removeWeirdCharacter(res_dbuser)
+	res_dbname = removeWeirdCharacter(res_dbuser[0])
 	re = regexp.MustCompile(define_dbpass)
-	cfg_dbpass := re.FindString(content)
+	cfg_dbpass := re.FindString(content_str)
 	res_dbpass := strings.Split(cfg_dbuser, define_dbuser)
-	res_dbpass = removeWeirdCharacter(res_dbuser)
+	res_dbpass = removeWeirdCharacter(res_dbuser[0])
 	
 	// Connect to db
 	db, err := dbConn(cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER],
