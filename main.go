@@ -39,6 +39,8 @@ const BASHCli = "/bin/bash"
 // config.php
 const CONFIG_PATH = "/home/%s/public_html/admin/includes/config.php"
 
+const DEFINE_CONFIG_PHP = "define(\'%s\',"
+
 // iem_stash_storage.php
 const IEM_STASH_STORAGE_PATH = "/home/%s/public_html/admin/com/storage/iem_stash_storage.php"
 
@@ -91,25 +93,29 @@ const (
 // Struct config API
 type ConfigAPI struct {
 	Log struct {
-		Dir string				`yaml:"dir"`
-		File_Name string			`yaml:"file_name"`
-	}							`yaml:"LogAudit"`
-	DB_Sample string				`yaml:"DB_Sample"`
-	Skeleton string				`yaml:"Skeleton"`
-	Clients []string				`yaml:"ListIPClient"`
+		Dir string					`yaml:"dir"`
+		File_Name string				`yaml:"file_name"`
+	}								`yaml:"LogAudit"`
+	Credential struct {
+		User string					`yaml:"user"`
+		Password string				`yaml:"password"`
+	}								`yaml:"Credential"`
+	DB_Sample string					`yaml:"DB_Sample"`
+	Skeleton string					`yaml:"Skeleton"`
+	Clients []string					`yaml:"ListIPClient"`
 }
 
 // Struct Config php source
 type ConfigInfo struct {
-	Action		string			`json:"action"`
-	Reason		string			`json:"reason"`
-	User		string			`json:"user"`
-	Pass		string			`json:"pass"`
-	Domain		string			`json:"domain"`
-	Email		string			`json:"email"`
-	App_url		string			`json:"app_url"`
-	Pkgname	string			`json:"pkgname"`
-	map_cfgphp	map[string]string
+	Action			string			`json:"action"`
+	Reason			string			`json:"reason"`
+	User			string			`json:"user"`
+	Password		string			`json:"password"`
+	Domain			string			`json:"domain"`
+	Email			string			`json:"email"`
+	App_url			string			`json:"app_url"`
+	Pkgname		string			`json:"pkgname"`
+	map_cfgphp		map[string]string
 	map_cfgstorage	map[string]string
 }
 
@@ -219,25 +225,30 @@ func URL_encode(str string) string {
 	return u.String()
 }
 
-// 
+// Remove ', ());
+func removeWeirdCharacter(str string) string {
+	out := strings.Replace(str, "'", "", -1)
+	out = strings.Replace(out, ",", "", -1)
+	out = strings.Replace(out, " ", "", -1)
+	out = strings.Replace(out, ")", "", -1)
+	out = strings.Replace(out, "(", "", -1)
+	out = strings.Replace(out, ";", "", -1)
+	return out
+}
 
 //----------------------------------------------------------
 // Function zone
 
 // Read config file
-func readConfigAPI(file string) ConfigAPI {
-	f, err := os.Open("config.yaml")
-	if err != nil {
-		panic(err)
-	}
-
+func readConfigAPI(file string) (ConfigAPI, error) {
 	var cfgapi ConfigAPI
+	f, err := os.Open(file)
+	if err != nil {
+		return cfgapi, err
+	}
 	decoder := yaml.NewDecoder(f)
 	err = decoder.Decode(&cfgapi)
-	if err != nil {
-		panic(err)
-	}
-	return cfgapi
+	return cfgapi, err
 }
 
 // Add slash
@@ -477,16 +488,13 @@ func doAutoSSLCheck(user string) ([]byte, error) {
 }
 
 // Create db connection
-func dbConn(db_user, db_pass, db_name string) (db *sql.DB) {
+func dbConn(db_user, db_pass, db_name string) (db *sql.DB, error) {
 	dbDriver := "mysql"
 	db, err := sql.Open(dbDriver, db_user + ":" + db_pass + "@/" + db_name)
-	if err != nil {
-		panic(err.Error())
-	}
-	return db
+	return db, err
 }
 
-// Update row
+// Update user row
 func updateUserRow(db *sql.DB, username, unique_token, pass_hash, emailaddress string) (error) {
 	dbName := "email_users"
 	insFrom, err := db.Prepare("update " + dbName + " set username=?, unique_token=?, password=?, emailaddress=? where userid=1")
@@ -494,6 +502,17 @@ func updateUserRow(db *sql.DB, username, unique_token, pass_hash, emailaddress s
 		return err
 	}
 	insFrom.Exec(username, unique_token, pass_hash, emailaddress)
+	return nil
+}
+
+// Update user pass only
+func updateUserPass(db *sql.DB, username, unique_token, pass_hash string) (error) {
+	dbName := "email_users"
+	insFrom, err := db.Prepare("update " + dbName + " set username=?, unique_token=?, password=? where userid=1")
+	if err != nil {
+		return err
+	}
+	insFrom.Exec(username, unique_token, pass_hash)
 	return nil
 }
 
@@ -511,7 +530,6 @@ func writeAuditLog(msg string) {
 	// Open append
 	f, err := os.OpenFile(log_path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
-		panic(err)
 		return
 	}
 	defer f.Close()
@@ -519,7 +537,6 @@ func writeAuditLog(msg string) {
 	// Write message to file
 	t := time.Now()
 	if _, err = f.WriteString("\n[" + t.Format("2006.01.02 15:04:05") + "] " + msg); err != nil {
-		panic(err)
 		return
 	}
 }
@@ -607,6 +624,71 @@ func removeCpanelAccount(acc string) ([]byte, error) {
 	return out, err
 }
 
+// Change package cpanel account
+func changePackageCpanelAccount(acc, pkgname string) ([]byte, error) {
+	// Arguments
+	args := []string{
+		"changepackage",
+		"user=" + URL_encode(user),
+		"pkg=" + URL_encode(pkgname),
+	}
+
+	// Run cmd
+	cmd := exec.Command(WHMAPI1, args...)
+	out, err := cmd.CombinedOutput()
+	return out, err
+}
+
+// Change password dash
+func changePasswordDash(cpacc, pass string) error {
+	// Read file php config
+	cfgstorage_file := fmt.Sprintf(IEM_STASH_STORAGE_PATH, cpacc)
+	content, err := ioutil.ReadFile(cfgstorage_file)
+	if err != nil {
+		return err
+	}
+	// Predefine string separator
+	define_dbuser := fmt.Sprintf(DEFINE_CONFIG_PHP, SENDSTUDIO_DATABASE_USER)
+	define_dbname := fmt.Sprintf(DEFINE_CONFIG_PHP, SENDSTUDIO_DATABASE_NAME)
+	define_dbpass := fmt.Sprintf(DEFINE_CONFIG_PHP, SENDSTUDIO_DATABASE_PASS)
+
+	// Find config
+	// Database user
+	re := regexp.MustCompile(define_dbuser)
+	cfg_dbuser := re.FindString(content)
+	res_dbuser := strings.Split(cfg_dbuser, define_dbuser)
+	res_dbuser = removeWeirdCharacter(res_dbuser)
+	re = regexp.MustCompile(define_dbname)
+	cfg_dbname := re.FindString(content)
+	res_dbname := strings.Split(cfg_dbuser, define_dbuser)
+	res_dbname = removeWeirdCharacter(res_dbuser)
+	re = regexp.MustCompile(define_dbpass)
+	cfg_dbpass := re.FindString(content)
+	res_dbpass := strings.Split(cfg_dbuser, define_dbuser)
+	res_dbpass = removeWeirdCharacter(res_dbuser)
+	
+	// Connect to db
+	db, err := dbConn(cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER],
+			cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS],
+			cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME])
+	if err != nil {
+		return err 
+	}
+
+	// Get token and password hash
+	unique_token := generateUniqueToken(cpacc)
+	pass_hash := generatePasswordHash(pass, unique_token)
+
+	// Update row password only
+	dbName := "email_users"
+	insFrom, err := db.Prepare("update " + dbName + " set unique_token=?, password=? where userid=1")
+	if err != nil {
+		return err
+	}
+	insFrom.Exec(unique_token, pass_hash)
+	return nil
+}
+
 // Check domain exist
 func checkDomain(domain string) bool {
 	// Arguments
@@ -656,7 +738,15 @@ func getReasonUnsuspendCpanelAccount(out string) (string, bool) {
 func getReasonRemoveCpanelAccount(out string) (string, bool) {
 	re := regexp.MustCompile(`.*reason: .*`)
 	reason := re.FindString(out)
-	success := "reason: OK"
+	success := "account removed"
+	return reason, strings.Contains(out, success)
+}
+
+// Get reason removeCpanelAccount success or not
+func getReasonChangePackageCpanelAccount(out string) (string, bool) {
+	re := regexp.MustCompile(`.*reason: .*`)
+	reason := re.FindString(out)
+	success := "reason: Account Upgrade/Downgrade Complete"
 	return reason, strings.Contains(out, success)
 }
 
@@ -798,7 +888,7 @@ func postHandler(c *gin.Context) {
 	defer func() {delete(Lock_Map, cfg.User)}()
 
 	//cfg.User = "haond1"
-	//cfg.Pass = "xxxxx"
+	//cfg.Password = "xxxxx"
 	//cfg.Domain = "haond1.com"
 	//cfg.Email = "userhaond1.com"
 	//cfg.App_url = "https://12347.em.vinahost.vn"
@@ -993,13 +1083,14 @@ func postHandler(c *gin.Context) {
 		}
 		
 		// Create alias
-		out, err = addAliasDomain(cfg.User, removeScheme(cfg.App_url))
+		alias := removeScheme(cfg.App_url)
+		out, err = addAliasDomain(cfg.User, alias)
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error create alias: " + err.Error()
+				response.Message = "Error create alias: " + alias + ", " + err.Error()
 			} else {
-				response.Message = "Error create alias: " + err.Error() + "\n" + string(out)
+				response.Message = "Error create alias: " + alias + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -1011,9 +1102,9 @@ func postHandler(c *gin.Context) {
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error do exclude autoSSL: " + err.Error()
+				response.Message = "Error do exclude autoSSL: " + cfg.User + ", " + err.Error()
 			} else {
-				response.Message = "Error do exclude autoSSL: " + err.Error() + "\n" + string(out)
+				response.Message = "Error do exclude autoSSL: " + cfg.User + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -1036,22 +1127,29 @@ func postHandler(c *gin.Context) {
 		// Create email account
 		stringSlice := strings.Split(cfg.Email, "@")
 		email_user := stringSlice[0]
-		out, err = createEmailAccount(cfg.User, cfg.Domain, email_user, cfg.Pass)
+		out, err = createEmailAccount(cfg.User, cfg.Domain, email_user, cfg.Password)
 
 		// Update email.users in database
 		// Create db connection
-		db := dbConn(cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER],
+		db, err := dbConn(cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER],
 			cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS],
-			cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME])	
+			cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME])
+		if err != nil {
+			response.Success = false
+			response.Message = "Error connect to database: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " + err.Error()
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
 
 		// Get token and password hash
 		unique_token := generateUniqueToken(cfg.User)
-		pass_hash := generatePasswordHash(cfg.Pass, unique_token)
+		pass_hash := generatePasswordHash(cfg.Password, unique_token)
 		// Run update row
 		err = updateUserRow(db, cfg.User, unique_token, pass_hash, cfg.Email)
 		if err != nil {
 			response.Success = false
-			response.Message = "Error update token/password: " + err.Error()
+			response.Message = "Error update token/password: \'" + cfg.Password + "\' for user " + cfg.User + ", " + err.Error()
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
@@ -1081,7 +1179,7 @@ func postHandler(c *gin.Context) {
 			c.JSON(http.StatusOK, response)
 			return
 		}
-		// Check create cpanel account false
+		// Check suspend account fail
 		out, check := getReasonSuspendCpanelAccount(out)
 		if check == false {
 			response.Success = false
@@ -1113,7 +1211,7 @@ func postHandler(c *gin.Context) {
 			c.JSON(http.StatusOK, response)
 			return
 		}
-		// Check create cpanel account false
+		// Check unsuspend account fail
 		out, check := getReasonUnsuspendCpanelAccount(out)
 		if check == false {
 			response.Success = false
@@ -1132,7 +1230,7 @@ func postHandler(c *gin.Context) {
 
 	// Action terminate/remove
 	if cfg.Action == "terminate" {
-		// Unsuspend cpanel account
+		// Terminate/remove account
 		out, err := removeCpanelAccount(cfg.User)
 		if err != nil {
 			response.Success = false
@@ -1145,7 +1243,7 @@ func postHandler(c *gin.Context) {
 			c.JSON(http.StatusOK, response)
 			return
 		}
-		// Check create cpanel account false
+		// Check remove account fail
 		out, check := getReasonRemoveCpanelAccount(out)
 		if check == false {
 			response.Success = false
@@ -1162,8 +1260,56 @@ func postHandler(c *gin.Context) {
 		}
 	}
 
-	// Action terminate
+	// Action change package
+	if cfg.Action == "changepackage" {
+		// Change package
+		out, err := changePackageCpanelAccount(cfg.User)
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error change package account cpanel: " + cfg.User + ", " + err.Error()
+			} else {
+				response.Message = "Error change package account cpanel: " + cfg.User + ", " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		// Check change package fail
+		out, check := getReasonChangePackageCpanelAccount(out)
+		if check == false {
+			response.Success = false
+			response.Message = "Error change package account cpanel: " + cfg.User + ", " + string(out)
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		} else {
+			response.Success = true
+			response.Message = "Success change package account cpanel: " + cfg.User
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+	}
 
+	// Action change password dash
+	if cfg.Action == "changepackage" {
+		// Change password dash
+		err := changePasswordDash(cfg.User, cfg.Password)
+		if err != nil {
+			response.Success = false
+			response.Message = "Error change password dash user: " + cfg.User + " - " + cfg.Password + ", " + err.Error()
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		} else {
+			response.Success = true
+			response.Message = "Success change password dash user: " + cfg.User + " - " + cfg.Password
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+	}
 }
 
 //-----------------------------------------------------
@@ -1179,7 +1325,7 @@ func main() {
 	router := gin.Default()
 
 	authorized := router.Group("/", gin.BasicAuth(gin.Accounts{
-		"admin":    "uJgLXsQRrX",
+		Cfg_API.Credential.User: Cfg_API.Credential.Password,
 	}))
 
 	authorized.POST("/", postHandler)
