@@ -39,7 +39,7 @@ const BASHCli = "/bin/bash"
 // config.php
 const CONFIG_PATH = "/home/%s/public_html/admin/includes/config.php"
 
-const DEFINE_CONFIG_PHP = "define(\'%s\',"
+const DEFINE_CONFIG_PHP = "define('%s',"
 
 // iem_stash_storage.php
 const IEM_STASH_STORAGE_PATH = "/home/%s/public_html/admin/com/storage/iem_stash_storage.php"
@@ -139,12 +139,12 @@ var Cfg_API ConfigAPI
 
 // Action map
 var Action_Map = map[string]bool {
-	"create": true;
-	"suspend": true;
-	"unsuspend": true;
-	"terminate": true;
-	"changepackage": true;
-	"changepassword": true;
+	"create": true,
+	"suspend": true,
+	"unsuspend": true,
+	"terminate": true,
+	"changepackage": true,
+	"changepassword": true,
 }
 
 //----------------------------------------------------------
@@ -488,7 +488,7 @@ func doAutoSSLCheck(user string) ([]byte, error) {
 }
 
 // Create db connection
-func dbConn(db_user, db_pass, db_name string) (db *sql.DB, error) {
+func dbConn(db_user, db_pass, db_name string) (*sql.DB, error) {
 	dbDriver := "mysql"
 	db, err := sql.Open(dbDriver, db_user + ":" + db_pass + "@/" + db_name)
 	return db, err
@@ -1037,7 +1037,7 @@ func postHandler(c *gin.Context) {
 		if err != nil {
 			response.Success = false
 			response.Message = "Error grant all privileges: " +
-							cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER]) +
+							cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] +
 							"to database " +
 							cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " +
 							err.Error() + "\n" + string(out)
@@ -1050,7 +1050,7 @@ func postHandler(c *gin.Context) {
 		if check == false {
 			response.Success = false
 			response.Message = "Error grant all privileges: user " +
-							cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER]) +
+							cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] +
 							"to database " +
 							cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " +
 							string(out)
@@ -1059,7 +1059,7 @@ func postHandler(c *gin.Context) {
 			return
 		} else {
 			response.Message = "Success grant all privileges: user " +
-							cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER]) +
+							cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] +
 							"to database " +
 							cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME]
 			writeAuditLog(response.Message)
@@ -1149,7 +1149,7 @@ func postHandler(c *gin.Context) {
 		err = updateUserRow(db, cfg.User, unique_token, pass_hash, cfg.Email)
 		if err != nil {
 			response.Success = false
-			response.Message = "Error update token/password: \'" + cfg.Password + "\' for user " + cfg.User + ", " + err.Error()
+			response.Message = "Error update token/password: '" + cfg.Password + "' for user " + cfg.User + ", " + err.Error()
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
