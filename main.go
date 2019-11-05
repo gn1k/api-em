@@ -301,6 +301,29 @@ func mapClients(cfgapi ConfigAPI) {
 	}
 }
 
+// Get restictions
+func getRestrictionAccount(user string) ([]byte, error) {
+	// Arguments
+	args := []string{
+		"user=" + URL_encode(user),
+		"Mysql",
+		"get_restrictions",
+	}
+
+	// Run cmd
+	cmd := exec.Command(UAPI, args...)
+	out, err := cmd.CombinedOutput()
+	return out, err
+}
+
+// Get prefix (restriction) database
+func getPrefixDatabase(prefix string) string {
+	re := regexp.MustCompile(".*prefix: .*")
+	prefix_line := re.FindString(prefix)
+	prefix_res := strings.Split(prefix_line, "prefix: ")
+	return prefix_res[len(prefix_res) - 1]
+}
+
 // Create account cpanel in WHM
 func createCpanelAccount(user, domain, ctemail, pkgname, owner, password string) ([]byte, error) {
 	if ctemail == "" {
@@ -441,7 +464,6 @@ func getExcludeDomain(domain, alias string) (string) {
 		"mail." + alias + "," +
 		"www." + alias
 	return output
-	
 }
 
 // Remove scheme http/https
@@ -658,18 +680,18 @@ func changePasswordDash(cpacc, pass string) error {
 	// Find config
 	// Database user
 	content_str := string(content)
-	re := regexp.MustCompile(define_dbuser)
+	re := regexp.MustCompile(".*" + define_dbuser + ".*")
 	cfg_dbuser := re.FindString(content_str)
 	res_dbuser := strings.Split(cfg_dbuser, define_dbuser)
-	dbuser := removeWeirdCharacter(res_dbuser[0])
-	re = regexp.MustCompile(define_dbname)
+	dbuser := removeWeirdCharacter(res_dbuser[len(res_dbuser)])
+	re = regexp.MustCompile(".*" + define_dbname + ".*")
 	cfg_dbname := re.FindString(content_str)
 	res_dbname := strings.Split(cfg_dbname, define_dbname)
-	dbname := removeWeirdCharacter(res_dbname[0])
-	re = regexp.MustCompile(define_dbpass)
+	dbname := removeWeirdCharacter(res_dbname[len(res_dbname)])
+	re = regexp.MustCompile(".*" + define_dbpass + ".*")
 	cfg_dbpass := re.FindString(content_str)
 	res_dbpass := strings.Split(cfg_dbpass, define_dbpass)
-	dbpass := removeWeirdCharacter(res_dbpass[0])
+	dbpass := removeWeirdCharacter(res_dbpass[len(res_dbpass)])
 	
 	// Connect to db
 	db, err := dbConn(dbuser, dbpass, dbname)
@@ -899,10 +921,8 @@ func postHandler(c *gin.Context) {
 	if cfg.Action == "create" {
 		// Generate configure
 		cfg.map_cfgphp = make(map[string]string)
-		cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] = cfg.User + "_db"
 		cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS] = StringRand(16)
-		cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] = cfg.User + "_db"
-
+		
 		cfg.map_cfgstorage = make(map[string]string)
 		cfg.map_cfgstorage[SMTP_USERNAME] = cfg.Email
 		cfg.map_cfgstorage[SMTP_PASSWORD] = StringRand(16)
@@ -933,6 +953,30 @@ func postHandler(c *gin.Context) {
 			response.Message = "Success create account cpanel: " + cfg.User
 			writeAuditLog(response.Message)
 		}
+
+		// Get restriction
+		out, err = getRestrictionAccount(cfg.User)
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error get restriction account: " + cfg.User + ", " + err.Error()
+			} else {
+				response.Message = "Error get restriction account: " + cfg.User + ", " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		prefix_db := getPrefixDatabase(string(out))
+		if prefix_db == "" {
+			response.Success = false
+			response.Message = "Error get restriction account: " + cfg.User + ", its empty."
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] = prefix_db + "db"
+		cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] = prefix_db + "db"
 
 		// Rsync skeleton
 		target := "/home/" + cfg.User + "/public_html/"
