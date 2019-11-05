@@ -1088,7 +1088,7 @@ func postHandler(c *gin.Context) {
 			response.Success = false
 			response.Message = "Error grant all privileges: " +
 							cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] +
-							"to database " +
+							" to database " +
 							cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " +
 							err.Error() + "\n" + string(out)
 			writeAuditLog(response.Message)
@@ -1101,7 +1101,7 @@ func postHandler(c *gin.Context) {
 			response.Success = false
 			response.Message = "Error grant all privileges: user " +
 							cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] +
-							"to database " +
+							" to database " +
 							cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " +
 							reason_out
 			writeAuditLog(response.Message)
@@ -1110,7 +1110,7 @@ func postHandler(c *gin.Context) {
 		} else {
 			response.Message = "Success grant all privileges: user " +
 							cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] +
-							"to database " +
+							" to database " +
 							cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME]
 			writeAuditLog(response.Message)
 		}
