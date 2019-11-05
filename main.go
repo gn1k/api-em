@@ -659,20 +659,18 @@ func changePasswordDash(cpacc, pass string) error {
 	re := regexp.MustCompile(define_dbuser)
 	cfg_dbuser := re.FindString(content_str)
 	res_dbuser := strings.Split(cfg_dbuser, define_dbuser)
-	res_dbuser = removeWeirdCharacter(res_dbuser[0])
+	dbuser = removeWeirdCharacter(res_dbuser[0])
 	re = regexp.MustCompile(define_dbname)
 	cfg_dbname := re.FindString(content_str)
 	res_dbname := strings.Split(cfg_dbuser, define_dbuser)
-	res_dbname = removeWeirdCharacter(res_dbuser[0])
+	dbname = removeWeirdCharacter(res_dbuser[0])
 	re = regexp.MustCompile(define_dbpass)
 	cfg_dbpass := re.FindString(content_str)
 	res_dbpass := strings.Split(cfg_dbuser, define_dbuser)
-	res_dbpass = removeWeirdCharacter(res_dbuser[0])
+	dbpass = removeWeirdCharacter(res_dbuser[0])
 	
 	// Connect to db
-	db, err := dbConn(cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER],
-			cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS],
-			cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME])
+	db, err := dbConn(dbuser, dbpass, dbname)
 	if err != nil {
 		return err 
 	}
@@ -922,10 +920,10 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check create cpanel account false
-		out, check := getReasonCreateCpanelAccount(out)
+		reason_out, check := getReasonCreateCpanelAccount(out)
 		if check == false {
 			response.Success = false
-			response.Message = "Error create account cpanel: " + cfg.User + ", " + string(out)
+			response.Message = "Error create account cpanel: " + cfg.User + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
@@ -936,13 +934,13 @@ func postHandler(c *gin.Context) {
 
 		// Rsync skeleton
 		target := "/home/" + cfg.User + "/public_html/"
-		out, err = rsyncSkeleton(target)
+		reason_out, err = rsyncSkeleton(target)
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
 				response.Message = "Error rsync skeleton: " + target + ", " + err.Error()
 			} else {
-				response.Message = "Error rsync skeleton: " + target + ", " + err.Error() + "\n" + string(out)
+				response.Message = "Error rsync skeleton: " + target + ", " + err.Error() + "\n" + out
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -996,10 +994,10 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check create database false
-		out, check = getReasonCreateDatabase(out)
+		reason_out, check = getReasonCreateDatabase(out)
 		if check == false {
 			response.Success = false
-			response.Message = "Error create database: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " + string(out)
+			response.Message = "Error create database: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
@@ -1022,10 +1020,10 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check create db user false
-		out, check = getReasonCreateDBUser(out)
+		reason_out, check = getReasonCreateDBUser(out)
 		if check == false {
 			response.Success = false
-			response.Message = "Error create dbuser: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] + ", " + string(out)
+			response.Message = "Error create dbuser: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
@@ -1048,14 +1046,14 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check grant all privileges false
-		out, check = getReasonGrantAllPrivileges(out)
+		reason_out, check = getReasonGrantAllPrivileges(out)
 		if check == false {
 			response.Success = false
 			response.Message = "Error grant all privileges: user " +
 							cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] +
 							"to database " +
 							cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " +
-							string(out)
+							reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
@@ -1182,10 +1180,10 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check suspend account fail
-		out, check := getReasonSuspendCpanelAccount(out)
+		reason_out, check := getReasonSuspendCpanelAccount(out)
 		if check == false {
 			response.Success = false
-			response.Message = "Error suspend account cpanel: " + cfg.User + ", " + string(out)
+			response.Message = "Error suspend account cpanel: " + cfg.User + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
@@ -1214,10 +1212,10 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check unsuspend account fail
-		out, check := getReasonUnsuspendCpanelAccount(out)
+		reason_out, check := getReasonUnsuspendCpanelAccount(out)
 		if check == false {
 			response.Success = false
-			response.Message = "Error unsuspend account cpanel: " + cfg.User + ", " + string(out)
+			response.Message = "Error unsuspend account cpanel: " + cfg.User + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
@@ -1246,10 +1244,10 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check remove account fail
-		out, check := getReasonRemoveCpanelAccount(out)
+		reason_out, check := getReasonRemoveCpanelAccount(out)
 		if check == false {
 			response.Success = false
-			response.Message = "Error remove account cpanel: " + cfg.User + ", " + string(out)
+			response.Message = "Error remove account cpanel: " + cfg.User + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
@@ -1278,10 +1276,10 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check change package fail
-		out, check := getReasonChangePackageCpanelAccount(out)
+		reason_out, check := getReasonChangePackageCpanelAccount(out)
 		if check == false {
 			response.Success = false
-			response.Message = "Error change package account cpanel: " + cfg.User + ", " + string(out)
+			response.Message = "Error change package account cpanel: " + cfg.User + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
