@@ -1319,7 +1319,7 @@ func main() {
 	// Read configure file
 	Cfg_API, err := readConfigAPI("/root/go/src/github.com/gn1k/api-em/config.yaml")
 	if err != nil {
-		fmt.Println("Read configure file error" + err.Error())
+		fmt.Println("Read configure file error: " + err.Error())
 		return
 	}
 	mapClients(Cfg_API)
