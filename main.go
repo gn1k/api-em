@@ -1244,7 +1244,7 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check remove account fail
-		reason_out, check := getReasonRemoveCpanelAccount(out)
+		reason_out, check := getReasonRemoveCpanelAccount(string(out))
 		if check == false {
 			response.Success = false
 			response.Message = "Error remove account cpanel: " + cfg.User + ", " + reason_out
@@ -1276,7 +1276,7 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check change package fail
-		reason_out, check := getReasonChangePackageCpanelAccount(out)
+		reason_out, check := getReasonChangePackageCpanelAccount(string(out))
 		if check == false {
 			response.Success = false
 			response.Message = "Error change package account cpanel: " + cfg.User + ", " + reason_out
@@ -1317,7 +1317,11 @@ func postHandler(c *gin.Context) {
 // Main function
 func main() {
 	// Read configure file
-	Cfg_API = readConfigAPI("/root/go/src/github.com/gn1k/api-em/config.yaml")
+	Cfg_API, err := readConfigAPI("/root/go/src/github.com/gn1k/api-em/config.yaml")
+	if err != nil {
+		fmt.Println("Read configure file error" + err.Error())
+		return
+	}
 	mapClients(Cfg_API)
 	Cfg_API.Skeleton = addSlash(Cfg_API.Skeleton)
 	Cfg_API.Log.Dir = addSlash(Cfg_API.Log.Dir)
