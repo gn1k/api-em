@@ -662,12 +662,12 @@ func changePasswordDash(cpacc, pass string) error {
 	dbuser := removeWeirdCharacter(res_dbuser[0])
 	re = regexp.MustCompile(define_dbname)
 	cfg_dbname := re.FindString(content_str)
-	res_dbname := strings.Split(cfg_dbuser, define_dbuser)
-	dbname := removeWeirdCharacter(res_dbuser[0])
+	res_dbname := strings.Split(cfg_dbname, define_dbname)
+	dbname := removeWeirdCharacter(res_dbname[0])
 	re = regexp.MustCompile(define_dbpass)
 	cfg_dbpass := re.FindString(content_str)
-	res_dbpass := strings.Split(cfg_dbuser, define_dbuser)
-	dbpass := removeWeirdCharacter(res_dbuser[0])
+	res_dbpass := strings.Split(cfg_dbpass, define_dbpass)
+	dbpass := removeWeirdCharacter(res_dbpass[0])
 	
 	// Connect to db
 	db, err := dbConn(dbuser, dbpass, dbname)
