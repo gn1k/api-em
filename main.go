@@ -967,6 +967,7 @@ func postHandler(c *gin.Context) {
 			c.JSON(http.StatusOK, response)
 			return
 		}
+		// Get prefix database
 		prefix_db := getPrefixDatabase(string(out))
 		if prefix_db == "" {
 			response.Success = false
@@ -974,6 +975,9 @@ func postHandler(c *gin.Context) {
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
+		} else {
+			response.Message = "Success get restriction account: " + cfg.User + " - " + prefix_db
+			writeAuditLog(response.Message)
 		}
 		cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] = prefix_db + "db"
 		cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] = prefix_db + "db"
