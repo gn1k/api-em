@@ -659,15 +659,15 @@ func changePasswordDash(cpacc, pass string) error {
 	re := regexp.MustCompile(define_dbuser)
 	cfg_dbuser := re.FindString(content_str)
 	res_dbuser := strings.Split(cfg_dbuser, define_dbuser)
-	dbuser = removeWeirdCharacter(res_dbuser[0])
+	dbuser := removeWeirdCharacter(res_dbuser[0])
 	re = regexp.MustCompile(define_dbname)
 	cfg_dbname := re.FindString(content_str)
 	res_dbname := strings.Split(cfg_dbuser, define_dbuser)
-	dbname = removeWeirdCharacter(res_dbuser[0])
+	dbname := removeWeirdCharacter(res_dbuser[0])
 	re = regexp.MustCompile(define_dbpass)
 	cfg_dbpass := re.FindString(content_str)
 	res_dbpass := strings.Split(cfg_dbuser, define_dbuser)
-	dbpass = removeWeirdCharacter(res_dbuser[0])
+	dbpass := removeWeirdCharacter(res_dbuser[0])
 	
 	// Connect to db
 	db, err := dbConn(dbuser, dbpass, dbname)
@@ -920,7 +920,7 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check create cpanel account false
-		reason_out, check := getReasonCreateCpanelAccount(out)
+		reason_out, check := getReasonCreateCpanelAccount(string(out))
 		if check == false {
 			response.Success = false
 			response.Message = "Error create account cpanel: " + cfg.User + ", " + reason_out
@@ -934,13 +934,13 @@ func postHandler(c *gin.Context) {
 
 		// Rsync skeleton
 		target := "/home/" + cfg.User + "/public_html/"
-		reason_out, err = rsyncSkeleton(target)
+		out, err = rsyncSkeleton(target)
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
 				response.Message = "Error rsync skeleton: " + target + ", " + err.Error()
 			} else {
-				response.Message = "Error rsync skeleton: " + target + ", " + err.Error() + "\n" + out
+				response.Message = "Error rsync skeleton: " + target + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -994,7 +994,7 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check create database false
-		reason_out, check = getReasonCreateDatabase(out)
+		reason_out, check = getReasonCreateDatabase(string(out))
 		if check == false {
 			response.Success = false
 			response.Message = "Error create database: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] + ", " + reason_out
@@ -1020,7 +1020,7 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check create db user false
-		reason_out, check = getReasonCreateDBUser(out)
+		reason_out, check = getReasonCreateDBUser(string(out))
 		if check == false {
 			response.Success = false
 			response.Message = "Error create dbuser: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] + ", " + reason_out
@@ -1046,7 +1046,7 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check grant all privileges false
-		reason_out, check = getReasonGrantAllPrivileges(out)
+		reason_out, check = getReasonGrantAllPrivileges(string(out))
 		if check == false {
 			response.Success = false
 			response.Message = "Error grant all privileges: user " +
@@ -1180,7 +1180,7 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check suspend account fail
-		reason_out, check := getReasonSuspendCpanelAccount(out)
+		reason_out, check := getReasonSuspendCpanelAccount(string(out))
 		if check == false {
 			response.Success = false
 			response.Message = "Error suspend account cpanel: " + cfg.User + ", " + reason_out
@@ -1212,7 +1212,7 @@ func postHandler(c *gin.Context) {
 			return
 		}
 		// Check unsuspend account fail
-		reason_out, check := getReasonUnsuspendCpanelAccount(out)
+		reason_out, check := getReasonUnsuspendCpanelAccount(string(out))
 		if check == false {
 			response.Success = false
 			response.Message = "Error unsuspend account cpanel: " + cfg.User + ", " + reason_out
