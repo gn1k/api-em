@@ -1319,7 +1319,9 @@ func postHandler(c *gin.Context) {
 // Main function
 func main() {
 	// Read configure file
-	Cfg_API, err := readConfigAPI("/root/go/src/github.com/gn1k/api-em/config.yaml")
+	var err error
+	Cfg_API, err = readConfigAPI("/root/go/src/github.com/gn1k/api-em/config.yaml")
+	// Do not use Cfg_API, err := readConfigAPI, it will make Cfg_API become local var
 	if err != nil {
 		fmt.Println("Read configure file error: " + err.Error())
 		return
