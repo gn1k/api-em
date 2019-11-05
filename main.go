@@ -531,6 +531,7 @@ func writeAuditLog(msg string) {
 	// Open append
 	f, err := os.OpenFile(log_path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
+		fmt.Println(err.Error())
 		return
 	}
 	defer f.Close()
@@ -538,6 +539,7 @@ func writeAuditLog(msg string) {
 	// Write message to file
 	t := time.Now()
 	if _, err = f.WriteString("\n[" + t.Format("2006.01.02 15:04:05") + "] " + msg); err != nil {
+		fmt.Println(err.Error())
 		return
 	}
 }
