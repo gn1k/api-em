@@ -305,7 +305,7 @@ func mapClients(cfgapi ConfigAPI) {
 func getRestrictionAccount(user string) ([]byte, error) {
 	// Arguments
 	args := []string{
-		"user=" + URL_encode(user),
+		"--user=" + URL_encode(user),
 		"Mysql",
 		"get_restrictions",
 	}
