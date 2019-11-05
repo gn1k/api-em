@@ -1263,7 +1263,7 @@ func postHandler(c *gin.Context) {
 	// Action change package
 	if cfg.Action == "changepackage" {
 		// Change package
-		out, err := changePackageCpanelAccount(cfg.User)
+		out, err := changePackageCpanelAccount(cfg.User, cfg.Pkgname)
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
