@@ -1228,7 +1228,7 @@ func postHandler(c *gin.Context) {
 		err = updateUserRow(db, cfg.User, unique_token, pass_hash, cfg.Email)
 		if err != nil {
 			response.Success = false
-			response.Message = "Error update token/password: '" + cfg.User + " - " + cfg.Password + ", " + err.Error()
+			response.Message = "Error update token/password: " + cfg.User + " - " + cfg.Password + ", " + err.Error()
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
@@ -1375,7 +1375,7 @@ func postHandler(c *gin.Context) {
 	}
 
 	// Action change password dash
-	if cfg.Action == "changepackage" {
+	if cfg.Action == "changepassword" {
 		// Change password dash
 		err := changePasswordDash(cfg.User, cfg.Password)
 		if err != nil {
@@ -1392,6 +1392,13 @@ func postHandler(c *gin.Context) {
 			return
 		}
 	}
+
+	// Unknow action
+	response.Success = true
+	response.Message = "Error unknow process action: " + cfg.User + " - " + cfg.Action
+	writeAuditLog(response.Message)
+	c.JSON(http.StatusOK, response)
+	return
 }
 
 //-----------------------------------------------------
