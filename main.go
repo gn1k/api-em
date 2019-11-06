@@ -668,7 +668,7 @@ func changePackageCpanelAccount(acc, pkgname string) ([]byte, error) {
 // Change password dash
 func changePasswordDash(cpacc, pass string) error {
 	// Read file php config
-	cfgstorage_file := fmt.Sprintf(IEM_STASH_STORAGE_PATH, cpacc)
+	cfgstorage_file := fmt.Sprintf(CONFIG_PATH, cpacc)
 	content, err := ioutil.ReadFile(cfgstorage_file)
 	if err != nil {
 		return err
