@@ -40,6 +40,7 @@ const BASHCli = "/bin/bash"
 const CONFIG_PATH = "/home/%s/public_html/admin/includes/config.php"
 
 const DEFINE_CONFIG_PHP = "define('%s',"
+const DEFINE_CONFIG_PHP_REGEXP = "define\\('%s',"
 
 // iem_stash_storage.php
 const IEM_STASH_STORAGE_PATH = "/home/%s/public_html/admin/com/storage/iem_stash_storage.php"
@@ -673,6 +674,9 @@ func changePasswordDash(cpacc, pass string) error {
 		return err
 	}
 	// Predefine string separator
+	define_dbuser_regexp := fmt.Sprintf(DEFINE_CONFIG_PHP_REGEXP, SENDSTUDIO_DATABASE_USER)
+	define_dbname_regexp := fmt.Sprintf(DEFINE_CONFIG_PHP_REGEXP, SENDSTUDIO_DATABASE_NAME)
+	define_dbpass_regexp := fmt.Sprintf(DEFINE_CONFIG_PHP_REGEXP, SENDSTUDIO_DATABASE_PASS)
 	define_dbuser := fmt.Sprintf(DEFINE_CONFIG_PHP, SENDSTUDIO_DATABASE_USER)
 	define_dbname := fmt.Sprintf(DEFINE_CONFIG_PHP, SENDSTUDIO_DATABASE_NAME)
 	define_dbpass := fmt.Sprintf(DEFINE_CONFIG_PHP, SENDSTUDIO_DATABASE_PASS)
@@ -680,15 +684,15 @@ func changePasswordDash(cpacc, pass string) error {
 	// Find config
 	// Database user
 	content_str := string(content)
-	re := regexp.MustCompile(".*" + define_dbuser + ".*")
+	re := regexp.MustCompile(".*" + define_dbuser_regexp + ".*")
 	cfg_dbuser := re.FindString(content_str)
 	res_dbuser := strings.Split(cfg_dbuser, define_dbuser)
 	dbuser := removeWeirdCharacter(res_dbuser[len(res_dbuser)])
-	re = regexp.MustCompile(".*" + define_dbname + ".*")
+	re = regexp.MustCompile(".*" + define_dbname_regexp + ".*")
 	cfg_dbname := re.FindString(content_str)
 	res_dbname := strings.Split(cfg_dbname, define_dbname)
 	dbname := removeWeirdCharacter(res_dbname[len(res_dbname)])
-	re = regexp.MustCompile(".*" + define_dbpass + ".*")
+	re = regexp.MustCompile(".*" + define_dbpass_regexp + ".*")
 	cfg_dbpass := re.FindString(content_str)
 	res_dbpass := strings.Split(cfg_dbpass, define_dbpass)
 	dbpass := removeWeirdCharacter(res_dbpass[len(res_dbpass)])
