@@ -933,9 +933,9 @@ func postHandler(c *gin.Context) {
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error create account cpanel: " + cfg.User + ", " + err.Error()
+				response.Message = "Error create account cpanel: " + cfg.User + " - " + cfg.Password + ", " + err.Error()
 			} else {
-				response.Message = "Error create account cpanel: " + cfg.User + ", " + err.Error() + "\n" + string(out)
+				response.Message = "Error create account cpanel: " + cfg.User + " - " + cfg.Password + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -945,12 +945,12 @@ func postHandler(c *gin.Context) {
 		reason_out, check := getReasonCreateCpanelAccount(string(out))
 		if check == false {
 			response.Success = false
-			response.Message = "Error create account cpanel: " + cfg.User + ", " + reason_out
+			response.Message = "Error create account cpanel: " + cfg.User + " - " + cfg.Password + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		} else {
-			response.Message = "Success create account cpanel: " + cfg.User
+			response.Message = "Success create account cpanel: " + cfg.User + " - " + cfg.Password
 			writeAuditLog(response.Message)
 		}
 
@@ -1005,15 +1005,15 @@ func postHandler(c *gin.Context) {
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error chown skeleton: " + err.Error()
+				response.Message = "Error chown skeleton: " + target + err.Error()
 			} else {
-				response.Message = "Error chown skeleton: " + err.Error() + "\n" + string(out)
+				response.Message = "Error chown skeleton: " + target + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		} else {
-			response.Message = "Success chown skeleton: "
+			response.Message = "Success chown skeleton: " + target
 			writeAuditLog(response.Message)
 		}
 
@@ -1061,9 +1061,9 @@ func postHandler(c *gin.Context) {
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error create dbuser: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] + ", " + err.Error()
+				response.Message = "Error create dbuser: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] + " - " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS] + ", " + err.Error()
 			} else {
-				response.Message = "Error create dbuser: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] + ", " + err.Error() + "\n" + string(out)
+				response.Message = "Error create dbuser: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] + " - " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS] + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -1073,12 +1073,12 @@ func postHandler(c *gin.Context) {
 		reason_out, check = getReasonCreateDBUser(string(out))
 		if check == false {
 			response.Success = false
-			response.Message = "Error create dbuser: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] + ", " + reason_out
+			response.Message = "Error create dbuser: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] + " - " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS] + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		} else {
-			response.Message = "Success create dbuser: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER]
+			response.Message = "Success create dbuser: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] + " - " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS]
 			writeAuditLog(response.Message)
 		}
 
@@ -1138,13 +1138,16 @@ func postHandler(c *gin.Context) {
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error create alias: " + alias + ", " + err.Error()
+				response.Message = "Error add alias: " + cfg.User + " - " + alias + ", " + err.Error()
 			} else {
-				response.Message = "Error create alias: " + alias + ", " + err.Error() + "\n" + string(out)
+				response.Message = "Error add alias: " + cfg.User + " - " + alias + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
+		} else {
+			response.Message = "Success add alias: " + cfg.User + " - " + alias
+			writeAuditLog(response.Message)
 		}
 
 		// Run autoSSL - do exclude domain
@@ -1172,12 +1175,38 @@ func postHandler(c *gin.Context) {
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
+		} else {
+			response.Message = "Success run auto SSL user: " + cfg.User
+			writeAuditLog(response.Message)
 		}
 
 		// Create email account
 		stringSlice := strings.Split(cfg.Email, "@")
 		email_user := stringSlice[0]
 		out, err = createEmailAccount(cfg.User, cfg.Domain, email_user, cfg.Password)
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.Password + ", " + err.Error()
+			} else {
+				response.Message = "Error create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.Password + ", " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		// Check create email account
+		reason_out, check = getReasonCreateEmailAccount(string(out))
+		if check == false {
+			response.Success = false
+			response.Message = "Error create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.Password + ", " + reason_out
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		} else {
+			response.Message = "Success create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.Password
+			writeAuditLog(response.Message)
+		}
 
 		// Update email.users in database
 		// Create db connection
@@ -1199,16 +1228,19 @@ func postHandler(c *gin.Context) {
 		err = updateUserRow(db, cfg.User, unique_token, pass_hash, cfg.Email)
 		if err != nil {
 			response.Success = false
-			response.Message = "Error update token/password: '" + cfg.Password + "' for user " + cfg.User + ", " + err.Error()
+			response.Message = "Error update token/password: '" + cfg.User + " - " + cfg.Password + ", " + err.Error()
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
+		} else {
+			response.Message = "Success update token/password: " + cfg.User + " - " + cfg.Password
+			writeAuditLog(response.Message)
+			db.Close()
 		}
-		db.Close()
 
 		// Announce success
 		response.Success = true
-		response.Message = "Install success: " + cfg.User + "/" + cfg.Domain
+		response.Message = "Install success: " + cfg.User + " - " + cfg.Domain + " - " + cfg.Email + " - " cfg.Password
 		writeAuditLog(response.Message)
 		c.JSON(http.StatusOK, response)
 		return
@@ -1317,9 +1349,9 @@ func postHandler(c *gin.Context) {
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error change package account cpanel: " + cfg.User + ", " + err.Error()
+				response.Message = "Error change package account cpanel: " + cfg.User + " - " + cfg.Pkgname + ", " + err.Error()
 			} else {
-				response.Message = "Error change package account cpanel: " + cfg.User + ", " + err.Error() + "\n" + string(out)
+				response.Message = "Error change package account cpanel: " + cfg.User + " - " + cfg.Pkgname + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -1329,13 +1361,13 @@ func postHandler(c *gin.Context) {
 		reason_out, check := getReasonChangePackageCpanelAccount(string(out))
 		if check == false {
 			response.Success = false
-			response.Message = "Error change package account cpanel: " + cfg.User + ", " + reason_out
+			response.Message = "Error change package account cpanel: " + cfg.User + " - " + cfg.Pkgname + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		} else {
 			response.Success = true
-			response.Message = "Success change package account cpanel: " + cfg.User
+			response.Message = "Success change package account cpanel: " + cfg.User + " - " + cfg.Pkgname
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
