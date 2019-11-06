@@ -1240,7 +1240,7 @@ func postHandler(c *gin.Context) {
 
 		// Announce success
 		response.Success = true
-		response.Message = "Install success: " + cfg.User + " - " + cfg.Domain + " - " + cfg.Email + " - " cfg.Password
+		response.Message = "Install success: " + cfg.User + " - " + cfg.Domain + " - " + cfg.Email + " - " + cfg.Password
 		writeAuditLog(response.Message)
 		c.JSON(http.StatusOK, response)
 		return
