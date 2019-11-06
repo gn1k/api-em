@@ -14,6 +14,9 @@ Credential:
         user: "admin"
         password: "uJgLXsQRrX"
 
+# API listen port
+Bind_Port: ":2019"
+
 # Manage IP
 ListIPClient:
         - 123.30.108.100

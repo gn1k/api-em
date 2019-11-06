@@ -103,6 +103,7 @@ type ConfigAPI struct {
 	}								`yaml:"Credential"`
 	DB_Sample string					`yaml:"DB_Sample"`
 	Skeleton string					`yaml:"Skeleton"`
+	Bind_Port string					`yaml:"Bind_Port"`
 	Clients []string					`yaml:"ListIPClient"`
 }
 
@@ -1428,5 +1429,5 @@ func main() {
 	}))
 
 	authorized.POST("/", postHandler)
-	router.RunTLS(":12345", "/etc/api-em/vinahost.crt", "/etc/api-em/vinahost.key")
+	router.RunTLS(Cfg_API.Bind_Port, "/etc/api-em/vinahost.crt", "/etc/api-em/vinahost.key")
 }
