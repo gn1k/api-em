@@ -17,6 +17,17 @@ Credential:
 # API listen port
 Bind_Port: ":2019"
 
+# Default value
+Default:
+        ctemail: "haond@vinahost.vn"
+        pkgname: "Start"
+        owner: "vinahost"
+
+# SSL key
+SSL:
+        cert: "/etc/api-em/vinahost.crt"
+        key: "/etc/api-em/vinahost.key"
+
 # Manage IP
 ListIPClient:
         - 123.30.108.100
