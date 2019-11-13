@@ -332,7 +332,7 @@ func getPrefixDatabase(prefix string) string {
 	return prefix_res[len(prefix_res) - 1]
 }
 
-// Create account cpanel in WHM
+// Create cpanel account in WHM
 func createCpanelAccount(user, domain, ctemail, pkgname, owner, password string) ([]byte, error) {
 	if ctemail == "" {
 		ctemail = Def_Ctemail
@@ -944,9 +944,9 @@ func postHandler(c *gin.Context) {
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error create account cpanel: " + cfg.User + " - " + cfg.Password + ", " + err.Error()
+				response.Message = "Error create cpanel account: " + cfg.User + " - " + cfg.Password + ", " + err.Error()
 			} else {
-				response.Message = "Error create account cpanel: " + cfg.User + " - " + cfg.Password + ", " + err.Error() + "\n" + string(out)
+				response.Message = "Error create cpanel account: " + cfg.User + " - " + cfg.Password + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -956,12 +956,12 @@ func postHandler(c *gin.Context) {
 		reason_out, check := getReasonCreateCpanelAccount(string(out))
 		if check == false {
 			response.Success = false
-			response.Message = "Error create account cpanel: " + cfg.User + " - " + cfg.Password + ", " + reason_out
+			response.Message = "Error create cpanel account: " + cfg.User + " - " + cfg.Password + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		} else {
-			response.Message = "Success create account cpanel: " + cfg.User + " - " + cfg.Password
+			response.Message = "Success create cpanel account: " + cfg.User + " - " + cfg.Password
 			writeAuditLog(response.Message)
 		}
 
@@ -1264,9 +1264,9 @@ func postHandler(c *gin.Context) {
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error suspend account cpanel: " + cfg.User + ", " + err.Error()
+				response.Message = "Error suspend cpanel account: " + cfg.User + ", " + err.Error()
 			} else {
-				response.Message = "Error suspend account cpanel: " + cfg.User + ", " + err.Error() + "\n" + string(out)
+				response.Message = "Error suspend cpanel account: " + cfg.User + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -1276,13 +1276,13 @@ func postHandler(c *gin.Context) {
 		reason_out, check := getReasonSuspendCpanelAccount(string(out))
 		if check == false {
 			response.Success = false
-			response.Message = "Error suspend account cpanel: " + cfg.User + ", " + reason_out
+			response.Message = "Error suspend cpanel account: " + cfg.User + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		} else {
 			response.Success = true
-			response.Message = "Success suspend account cpanel: " + cfg.User
+			response.Message = "Success suspend cpanel account: " + cfg.User
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
@@ -1296,9 +1296,9 @@ func postHandler(c *gin.Context) {
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error unsuspend account cpanel: " + cfg.User + ", " + err.Error()
+				response.Message = "Error unsuspend cpanel account: " + cfg.User + ", " + err.Error()
 			} else {
-				response.Message = "Error unsuspend account cpanel: " + cfg.User + ", " + err.Error() + "\n" + string(out)
+				response.Message = "Error unsuspend cpanel account: " + cfg.User + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -1308,13 +1308,13 @@ func postHandler(c *gin.Context) {
 		reason_out, check := getReasonUnsuspendCpanelAccount(string(out))
 		if check == false {
 			response.Success = false
-			response.Message = "Error unsuspend account cpanel: " + cfg.User + ", " + reason_out
+			response.Message = "Error unsuspend cpanel account: " + cfg.User + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		} else {
 			response.Success = true
-			response.Message = "Success unsuspend account cpanel: " + cfg.User
+			response.Message = "Success unsuspend cpanel account: " + cfg.User
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
@@ -1328,9 +1328,9 @@ func postHandler(c *gin.Context) {
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error remove account cpanel: " + cfg.User + ", " + err.Error()
+				response.Message = "Error remove cpanel account: " + cfg.User + ", " + err.Error()
 			} else {
-				response.Message = "Error remove account cpanel: " + cfg.User + ", " + err.Error() + "\n" + string(out)
+				response.Message = "Error remove cpanel account: " + cfg.User + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -1340,13 +1340,13 @@ func postHandler(c *gin.Context) {
 		reason_out, check := getReasonRemoveCpanelAccount(string(out))
 		if check == false {
 			response.Success = false
-			response.Message = "Error remove account cpanel: " + cfg.User + ", " + reason_out
+			response.Message = "Error remove cpanel account: " + cfg.User + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		} else {
 			response.Success = true
-			response.Message = "Success remove account cpanel: " + cfg.User
+			response.Message = "Success remove cpanel account: " + cfg.User
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
@@ -1360,9 +1360,9 @@ func postHandler(c *gin.Context) {
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error change package account cpanel: " + cfg.User + " - " + cfg.Pkgname + ", " + err.Error()
+				response.Message = "Error change package cpanel account: " + cfg.User + " - " + cfg.Pkgname + ", " + err.Error()
 			} else {
-				response.Message = "Error change package account cpanel: " + cfg.User + " - " + cfg.Pkgname + ", " + err.Error() + "\n" + string(out)
+				response.Message = "Error change package cpanel account: " + cfg.User + " - " + cfg.Pkgname + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -1372,13 +1372,13 @@ func postHandler(c *gin.Context) {
 		reason_out, check := getReasonChangePackageCpanelAccount(string(out))
 		if check == false {
 			response.Success = false
-			response.Message = "Error change package account cpanel: " + cfg.User + " - " + cfg.Pkgname + ", " + reason_out
+			response.Message = "Error change package cpanel account: " + cfg.User + " - " + cfg.Pkgname + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		} else {
 			response.Success = true
-			response.Message = "Success change package account cpanel: " + cfg.User + " - " + cfg.Pkgname
+			response.Message = "Success change package cpanel account: " + cfg.User + " - " + cfg.Pkgname
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
