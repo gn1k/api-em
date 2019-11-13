@@ -9,10 +9,7 @@ import (
 	"crypto/md5"
 	"os"
 	"fmt"
-	//"io"
 	"os/exec"
-	//"bytes"
-	//"log"
 	"io/ioutil"
 	"bufio"
 	"regexp"
@@ -97,10 +94,19 @@ type ConfigAPI struct {
 		Dir string					`yaml:"dir"`
 		File_Name string				`yaml:"file_name"`
 	}								`yaml:"LogAudit"`
+	Default struct {
+		Ctemail string				`yaml:"ctemail"`
+		Pkgname string				`yaml:"pkgname"`
+		Owner string					`yaml:"owner"`
+	}
 	Credential struct {
 		User string					`yaml:"user"`
 		Password string				`yaml:"password"`
 	}								`yaml:"Credential"`
+	SSL struct {
+		Cert string					`yaml:"cert"`
+		Key string					`yaml:"key"`
+	}
 	DB_Sample string					`yaml:"DB_Sample"`
 	Skeleton string					`yaml:"Skeleton"`
 	Bind_Port string					`yaml:"Bind_Port"`
