@@ -1418,7 +1418,7 @@ func postHandler(c *gin.Context) {
 func main() {
 	// Read configure file
 	var err error
-	Cfg_API, err = readConfigAPI("/root/go/src/github.com/gn1k/api-em/config.yaml")
+	Cfg_API, err = readConfigAPI("/etc/api-em/config.yaml")
 	// Do not use Cfg_API, err := readConfigAPI, it will make Cfg_API become local var
 	if err != nil {
 		fmt.Println("Read configure file error: " + err.Error())
@@ -1435,5 +1435,5 @@ func main() {
 	}))
 
 	authorized.POST("/", postHandler)
-	router.RunTLS(Cfg_API.Bind_Port, "/etc/api-em/vinahost.crt", "/etc/api-em/vinahost.key")
+	router.RunTLS(Cfg_API.Bind_Port, Cfg_API.SSL.Cert, Cfg_API.SSL.Key)
 }
