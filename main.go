@@ -98,7 +98,7 @@ type ConfigAPI struct {
 		Ctemail string				`yaml:"ctemail"`
 		Pkgname string				`yaml:"pkgname"`
 		Owner string					`yaml:"owner"`
-	}
+	}								`yaml:"Default"`
 	Credential struct {
 		User string					`yaml:"user"`
 		Password string				`yaml:"password"`
@@ -106,7 +106,7 @@ type ConfigAPI struct {
 	SSL struct {
 		Cert string					`yaml:"cert"`
 		Key string					`yaml:"key"`
-	}
+	}								`yaml:"SSL"`
 	DB_Sample string					`yaml:"DB_Sample"`
 	Skeleton string					`yaml:"Skeleton"`
 	Bind_Port string					`yaml:"Bind_Port"`
