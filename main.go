@@ -1194,13 +1194,13 @@ func postHandler(c *gin.Context) {
 		// Create email account
 		stringSlice := strings.Split(cfg.Email, "@")
 		email_user := stringSlice[0]
-		out, err = createEmailAccount(cfg.User, cfg.Domain, email_user, cfg.Password)
+		out, err = createEmailAccount(cfg.User, cfg.Domain, email_user, cfg.map_cfgstorage[SMTP_PASSWORD])
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.Password + ", " + err.Error()
+				response.Message = "Error create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD] + ", " + err.Error()
 			} else {
-				response.Message = "Error create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.Password + ", " + err.Error() + "\n" + string(out)
+				response.Message = "Error create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD] + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -1210,12 +1210,12 @@ func postHandler(c *gin.Context) {
 		reason_out, check = getReasonCreateEmailAccount(string(out))
 		if check == false {
 			response.Success = false
-			response.Message = "Error create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.Password + ", " + reason_out
+			response.Message = "Error create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD] + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		} else {
-			response.Message = "Success create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.Password
+			response.Message = "Success create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD]
 			writeAuditLog(response.Message)
 		}
 
