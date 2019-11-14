@@ -91,26 +91,26 @@ const (
 // Struct config API
 type ConfigAPI struct {
 	Log struct {
-		Dir string					`yaml:"dir"`
-		File_Name string				`yaml:"file_name"`
+		Dir			string			`yaml:"dir"`
+		File_Name	string			`yaml:"file_name"`
 	}								`yaml:"LogAudit"`
 	Default struct {
-		Ctemail string				`yaml:"ctemail"`
-		Pkgname string				`yaml:"pkgname"`
-		Owner string					`yaml:"owner"`
+		Ctemail		string			`yaml:"ctemail"`
+		Pkgname	string			`yaml:"pkgname"`
+		Owner		string			`yaml:"owner"`
 	}								`yaml:"Default"`
 	Credential struct {
-		User string					`yaml:"user"`
-		Password string				`yaml:"password"`
+		User		string			`yaml:"user"`
+		Password	string			`yaml:"password"`
 	}								`yaml:"Credential"`
 	SSL struct {
-		Cert string					`yaml:"cert"`
-		Key string					`yaml:"key"`
+		Cert			string			`yaml:"cert"`
+		Key			string			`yaml:"key"`
 	}								`yaml:"SSL"`
-	DB_Sample string					`yaml:"DB_Sample"`
-	Skeleton string					`yaml:"Skeleton"`
-	Bind_Port string					`yaml:"Bind_Port"`
-	Clients []string					`yaml:"ListIPClient"`
+	DB_Sample		string			`yaml:"DB_Sample"`
+	Skeleton			string			`yaml:"Skeleton"`
+	Bind_Port		string			`yaml:"Bind_Port"`
+	Clients			[]string			`yaml:"ListIPClient"`
 }
 
 // Struct Config php source
@@ -129,8 +129,8 @@ type ConfigInfo struct {
 
 // Struct Response
 type Response struct {
-	Success bool					`json:"success"`
-	Message string				`json:"message"`
+	Success			bool				`json:"success"`
+	Message			string			`json:"message"`
 }
 
 //----------------------------------------------------------
@@ -147,12 +147,12 @@ var Cfg_API ConfigAPI
 
 // Action map
 var Action_Map = map[string]bool {
-	"create": true,
-	"suspend": true,
-	"unsuspend": true,
-	"terminate": true,
-	"changepackage": true,
-	"changepassword": true,
+	"create":				true,
+	"suspend":			true,
+	"unsuspend":		true,
+	"terminate":			true,
+	"changepackage":		true,
+	"changepassword":	true,
 }
 
 //----------------------------------------------------------
