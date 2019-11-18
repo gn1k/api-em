@@ -123,6 +123,7 @@ type ConfigInfo struct {
 	Email			string			`json:"email"`
 	App_url			string			`json:"app_url"`
 	Pkgname		string			`json:"pkgname"`
+	Add_email_block	int			`json:"add_email_block"`
 	map_cfgphp		map[string]string
 	map_cfgstorage	map[string]string
 }
@@ -162,7 +163,8 @@ var Action_Map = map[string]bool {
 func StringRand(length int) string {
 	rand.Seed(time.Now().UnixNano())
 	digits := "0123456789"
-	specials := "~=+%^*/()[]{}/!@#$?|"
+	//specials := "~=+%^*/()[]{}/!@#$?|"
+	specials := "~=+^*/()[]{}/!@#$?|"
 	all := "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
 		"abcdefghijklmnopqrstuvwxyz" +
 		digits + specials
@@ -230,7 +232,16 @@ func URL_encode(str string) string {
 	if err != nil {
 		return str
 	}
-	return u.String()
+	enc := u.String()
+	enc = strings.ReplaceAll(enc, "/", "%2F")
+	enc = strings.ReplaceAll(enc, "~", "%7E")
+	enc = strings.ReplaceAll(enc, "=", "%3D")
+	enc = strings.ReplaceAll(enc, "+", "%2A")
+	enc = strings.ReplaceAll(enc, "@", "%40")
+	enc = strings.ReplaceAll(enc, "#", "%23")
+	enc = strings.ReplaceAll(enc, "?", "%3F")
+	enc = strings.ReplaceAll(enc, "$", "%24")
+	return enc
 }
 
 // Remove ', ());
@@ -944,9 +955,9 @@ func postHandler(c *gin.Context) {
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error create cpanel account: " + cfg.User + " - " + cfg.Password + ", " + err.Error()
+				response.Message = "Error create cpanel account: " + cfg.User + " / " + cfg.Password + ", " + err.Error()
 			} else {
-				response.Message = "Error create cpanel account: " + cfg.User + " - " + cfg.Password + ", " + err.Error() + "\n" + string(out)
+				response.Message = "Error create cpanel account: " + cfg.User + " / " + cfg.Password + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -956,12 +967,12 @@ func postHandler(c *gin.Context) {
 		reason_out, check := getReasonCreateCpanelAccount(string(out))
 		if check == false {
 			response.Success = false
-			response.Message = "Error create cpanel account: " + cfg.User + " - " + cfg.Password + ", " + reason_out
+			response.Message = "Error create cpanel account: " + cfg.User + " / " + cfg.Password + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		} else {
-			response.Message = "Success create cpanel account: " + cfg.User + " - " + cfg.Password
+			response.Message = "Success create cpanel account: " + cfg.User + " / " + cfg.Password
 			writeAuditLog(response.Message)
 		}
 
@@ -1239,19 +1250,19 @@ func postHandler(c *gin.Context) {
 		err = updateUserRow(db, cfg.User, unique_token, pass_hash, cfg.Email)
 		if err != nil {
 			response.Success = false
-			response.Message = "Error update token/password: " + cfg.User + " - " + cfg.Password + ", " + err.Error()
+			response.Message = "Error update token/password: " + cfg.User + " / " + cfg.Password + ", " + err.Error()
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		} else {
-			response.Message = "Success update token/password: " + cfg.User + " - " + cfg.Password
+			response.Message = "Success update token/password: " + cfg.User + " / " + cfg.Password
 			writeAuditLog(response.Message)
 			db.Close()
 		}
 
 		// Announce success
 		response.Success = true
-		response.Message = "Install success: " + cfg.User + " - " + cfg.Domain + " - " + cfg.Email + " - " + cfg.Password
+		response.Message = "Install success: " + cfg.User + " / " + cfg.Password + " - " + cfg.Domain + " - " + cfg.Email
 		writeAuditLog(response.Message)
 		c.JSON(http.StatusOK, response)
 		return
@@ -1391,13 +1402,13 @@ func postHandler(c *gin.Context) {
 		err := changePasswordDash(cfg.User, cfg.Password)
 		if err != nil {
 			response.Success = false
-			response.Message = "Error change password dash user: " + cfg.User + " - " + cfg.Password + ", " + err.Error()
+			response.Message = "Error change password dash user: " + cfg.User + " / " + cfg.Password + ", " + err.Error()
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		} else {
 			response.Success = true
-			response.Message = "Success change password dash user: " + cfg.User + " - " + cfg.Password
+			response.Message = "Success change password dash user: " + cfg.User + " / " + cfg.Password
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
