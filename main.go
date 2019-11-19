@@ -233,14 +233,14 @@ func URL_encode(str string) string {
 		return str
 	}
 	enc := u.String()
-	enc = strings.ReplaceAll(enc, "/", "%2F")
-	enc = strings.ReplaceAll(enc, "~", "%7E")
-	enc = strings.ReplaceAll(enc, "=", "%3D")
-	enc = strings.ReplaceAll(enc, "+", "%2A")
-	enc = strings.ReplaceAll(enc, "@", "%40")
 	enc = strings.ReplaceAll(enc, "#", "%23")
-	enc = strings.ReplaceAll(enc, "?", "%3F")
 	enc = strings.ReplaceAll(enc, "$", "%24")
+	enc = strings.ReplaceAll(enc, "+", "%2A")
+	enc = strings.ReplaceAll(enc, "/", "%2F")
+	enc = strings.ReplaceAll(enc, "=", "%3D")
+	enc = strings.ReplaceAll(enc, "?", "%3F")
+	enc = strings.ReplaceAll(enc, "@", "%40")
+	enc = strings.ReplaceAll(enc, "~", "%7E")
 	return enc
 }
 
