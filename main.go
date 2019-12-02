@@ -19,7 +19,6 @@ import (
 	"strings"
 	"gopkg.in/yaml.v3"
 	"database/sql"
-	"net/url"
 	_ "github.com/go-sql-driver/mysql"
 )
 
