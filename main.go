@@ -166,7 +166,7 @@ func StringRand(length int) string {
 	digits := "0123456789"
 	//specials := "~=+%^*()[]{}/!@#$?|"
 	// Not contain: ();' for php code and mysql syntax
-	specials := "~=+^*[]{}/!@#$?|"
+	specials := "~=+^*[]{}/!@#$?|_"
 	all := "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
 		"abcdefghijklmnopqrstuvwxyz" +
 		digits + specials
@@ -230,23 +230,25 @@ func Json_decode(data string) (interface{}, error) {
 
 // Url encode
 func URL_encode(str string) string {
-	u, err := url.Parse(str)
-	if err != nil {
-		return str
-	}
-	enc := u.String()
+	enc := strings.ReplaceAll(str, "!", "%21")
 	enc = strings.ReplaceAll(enc, "#", "%23")
 	enc = strings.ReplaceAll(enc, "$", "%24")
-	enc = strings.ReplaceAll(enc, "+", "%2A")
+	enc = strings.ReplaceAll(enc, "*", "%2A")
+	enc = strings.ReplaceAll(enc, "+", "%2B")
 	enc = strings.ReplaceAll(enc, "/", "%2F")
 	enc = strings.ReplaceAll(enc, "=", "%3D")
 	enc = strings.ReplaceAll(enc, "?", "%3F")
 	enc = strings.ReplaceAll(enc, "@", "%40")
-	enc = strings.ReplaceAll(enc, "~", "%7E")
+	enc = strings.ReplaceAll(enc, "[", "%5B")
+	enc = strings.ReplaceAll(enc, "]", "%5D")
+	enc = strings.ReplaceAll(enc, "^", "%5E")
+	enc = strings.ReplaceAll(enc, "{", "%7B")
+	enc = strings.ReplaceAll(enc, "|", "%7C")
+	enc = strings.ReplaceAll(enc, "}", "%7D")
 	return enc
 }
 
-// Remove ', ());
+// Remove ', ();
 func removeWeirdCharacter(str string) string {
 	out := strings.Replace(str, "', '", "", 1)
 	out = strings.Replace(out, "');", "", 1)
