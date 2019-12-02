@@ -37,6 +37,7 @@ const BASHCli = "/bin/bash"
 const CONFIG_PATH = "/home/%s/public_html/admin/includes/config.php"
 
 const DEFINE_CONFIG_PHP = "define('%s',"
+// \\ mean escape character for '(' when find string
 const DEFINE_CONFIG_PHP_REGEXP = "define\\('%s',"
 
 // iem_stash_storage.php
@@ -123,7 +124,7 @@ type ConfigInfo struct {
 	Email			string			`json:"email"`
 	App_url			string			`json:"app_url"`
 	Pkgname		string			`json:"pkgname"`
-	Add_email_block	int			`json:"add_email_block"`
+	Add_email_block	int				`json:"add_email_block"`
 	map_cfgphp		map[string]string
 	map_cfgstorage	map[string]string
 }
@@ -163,8 +164,9 @@ var Action_Map = map[string]bool {
 func StringRand(length int) string {
 	rand.Seed(time.Now().UnixNano())
 	digits := "0123456789"
-	//specials := "~=+%^*/()[]{}/!@#$?|"
-	specials := "~=+^*/()[]{}/!@#$?|"
+	//specials := "~=+%^*()[]{}/!@#$?|"
+	// Not contain: ();' for php code and mysql syntax
+	specials := "~=+^*[]{}/!@#$?|"
 	all := "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
 		"abcdefghijklmnopqrstuvwxyz" +
 		digits + specials
@@ -246,13 +248,8 @@ func URL_encode(str string) string {
 
 // Remove ', ());
 func removeWeirdCharacter(str string) string {
-	out := strings.Replace(str, "'", "", -1)
-	out = strings.Replace(out, ",", "", -1)
-	out = strings.Replace(out, " ", "", -1)
-	out = strings.Replace(out, ")", "", -1)
-	out = strings.Replace(out, "(", "", -1)
-	out = strings.Replace(out, ";", "", -1)
-	out = strings.Replace(out, " ", "", -1)
+	out := strings.Replace(str, "', '", "", 1)
+	out = strings.Replace(out, "');", "", 1)
 	return out
 }
 
