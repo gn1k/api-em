@@ -1,6 +1,7 @@
 package main
 
-import {
+import (
+	"strings"
 	"os/exec"
 	"regexp"
 	"encoding/base64"
@@ -8,7 +9,7 @@ import {
 	"gopkg.in/yaml.v3"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
-}
+)
 
 // Constant variables
 const WHMAPI1 = "/usr/sbin/whmapi1"
