@@ -1,4 +1,4 @@
-package apiem
+package main
 
 import (
 	"io/ioutil"
