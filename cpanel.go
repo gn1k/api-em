@@ -2,11 +2,10 @@ package main
 
 import (
 	"strings"
+	"io/ioutil"
+	"fmt"
 	"os/exec"
 	"regexp"
-	"encoding/base64"
-	"github.com/elliotchance/phpserialize"
-	"gopkg.in/yaml.v3"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 )

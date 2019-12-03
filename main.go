@@ -2,12 +2,9 @@ package main
 
 import (
 	"io/ioutil"
-	"os"
-	"os/exec"
 	"strings"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"time"
 	"fmt"
 )
 
