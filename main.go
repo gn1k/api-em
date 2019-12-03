@@ -1,18 +1,14 @@
 package apiem
 
 import (
-	"math/rand"
 	"io/ioutil"
 	"os"
-	"encoding/json"
+	"os/exec"
 	"strings"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
-	"crypto/sha1"
-	"crypto/md5"
 	"fmt"
-	"bufio"
 	"regexp"
 	"encoding/base64"
 	"github.com/elliotchance/phpserialize"

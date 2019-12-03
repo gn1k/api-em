@@ -6,6 +6,8 @@ import (
 	"os"
 	"encoding/json"
 	"strings"
+	"crypto/sha1"
+	"crypto/md5"
 )
 
 //----------------------------------------------------------
