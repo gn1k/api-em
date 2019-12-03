@@ -11,7 +11,6 @@ import (
 	"time"
 	"bufio"
 	"fmt"
-	"github.com/elliotchance/phpserialize"
 	"gopkg.in/yaml.v3"
 )
 
