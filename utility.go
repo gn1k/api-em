@@ -110,3 +110,53 @@ func removeWeirdCharacter(str string) string {
 	out = strings.Replace(out, "');", "", 1)
 	return out
 }
+
+// Add slash
+func addSlash(str string) string {
+	if len(str) == 0 {
+		return "/"
+	}
+	if str[len(str)-1:] != "/" {
+		str += "/"
+	}
+	return str
+}
+
+// Write audit log
+func writeAuditLog(msg string) {
+	// Log dir path
+	log_path := Cfg_API.Log.Dir
+	_, err := os.Stat(log_path)
+	if os.IsNotExist(err) {
+		os.MkdirAll(log_path, os.ModePerm)
+	}
+
+	// File path
+	log_path += Cfg_API.Log.File_Name
+	// Open append
+	f, err := os.OpenFile(log_path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	defer f.Close()
+
+	// Write message to file
+	t := time.Now()
+	if _, err = f.WriteString("\n[" + t.Format("2006.01.02 15:04:05") + "] " + msg); err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+
+// Read config file
+func readConfigAPI(file string) (ConfigAPI, error) {
+	var cfgapi ConfigAPI
+	f, err := os.Open(file)
+	if err != nil {
+		return cfgapi, err
+	}
+	decoder := yaml.NewDecoder(f)
+	err = decoder.Decode(&cfgapi)
+	return cfgapi, err
+}
