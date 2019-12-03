@@ -1,4 +1,4 @@
-package api-em
+package apiem
 
 import (
 	"github.com/gin-gonic/gin"
