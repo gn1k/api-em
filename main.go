@@ -1,6 +1,11 @@
 package apiem
 
 import (
+	"math/rand"
+	"io/ioutil"
+	"os"
+	"encoding/json"
+	"strings"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
@@ -14,7 +19,6 @@ import (
 	"gopkg.in/yaml.v3"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
-	_ "utility.go"
 )
 
 //----------------------------------------------------------
