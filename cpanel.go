@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os/exec"
 	"regexp"
-	"strings"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -590,22 +589,4 @@ func getDomainUserData(domain string) (CP_Data, bool) {
 		return cpd, false
 	}
 	return cpd, true
-}
-
-// Add addon domain
-func addAddonDomain(user, domain string) ([]byte, error) {
-	// Arguments
-	args := []string{
-		"--user=" + URL_encode(user),
-		"AddonDomain",
-		"addaddondomain",
-		"dir=" + URL_encode(domain),
-		"newdomain=" + URL_encode(domain),
-		"subdomain=" + 
-	}
-
-	// Run cmd
-	cmd := exec.Command(CPAPI2, args...)
-	out, err := cmd.CombinedOutput()
-	return out, err
 }
