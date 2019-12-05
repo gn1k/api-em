@@ -118,6 +118,7 @@ type Response struct {
 type CP_Data struct {
 	Data struct {
 		Userdata struct {
+			User			string			`yaml:"user"`
 			Documentroot	string			`yaml:"documentroot"`
 			Serveralias		string			`yaml:"serveralias"`
 		}									`yaml:"userdata"`
