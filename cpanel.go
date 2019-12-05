@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"os/exec"
 	"regexp"
+	"strings"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 )
 
+//----------------------------------------------------------
 // Constant variables
 const WHMAPI1 = "/usr/sbin/whmapi1"
 const CPAPI2 = "/usr/bin/cpapi2"
@@ -18,6 +20,9 @@ const MYSQLCli = "/usr/bin/mysql"
 const RSYNCCli = "/usr/bin/rsync"
 const CHOWNCli = "/bin/chown"
 const BASHCli = "/bin/bash"
+
+//----------------------------------------------------------
+// Function zone
 
 // Rsync skeleton
 func rsyncSkeleton(target string) ([]byte, error) {
@@ -210,15 +215,20 @@ func addAliasDomain(user, domain string) ([]byte, error) {
 }
 
 // Get exclude domain SSL
-func getExcludeDomain(domain, alias string) (string) {
-	output := domain + "," +
-		"mail." + domain + "," +
-		"www." + domain + "," +
-		"webmail." + domain + "," +
-		"cpanel." + domain + "," +
-		"webdisk." + domain + "," +
-		"mail." + alias + "," +
-		"www." + alias
+func getExcludeDomain(domain, serveralias string) (string) {
+	alias_arr := strings.Split(serveralias, " ")
+	output := domain
+	for i := 0; i < len(alias_arr) - 1; i++ {
+		if ! checkDomainEm(alias_arr[i]) {
+			output = output + "," + alias_arr[i]
+		}
+	}
+	last := len(alias_arr) - 1
+	if  last >= 0 {
+		if ! checkDomainEm(alias_arr[last]) {
+			output = output + "," + alias_arr[last]
+		}
+	}
 	return output
 }
 
@@ -235,8 +245,8 @@ func removeScheme(domain string) (string) {
 }
 
 // Do exclude domain SSL
-func doExcludeDomain(user, domain, alias string) ([]byte, error) {
-	list_exclude := URL_encode(getExcludeDomain(domain, alias))
+func doExcludeDomain(user, domain, serveralias string) ([]byte, error) {
+	list_exclude := URL_encode(getExcludeDomain(domain, serveralias))
 	// Arguments
 	args := []string{
 		"--user=" + URL_encode(user),
@@ -446,7 +456,7 @@ func changePasswordDash(cpacc, pass string) error {
 }
 
 // Check domain exist
-func checkDomain(domain string) bool {
+func checkDomainExist(domain string) bool {
 	// Arguments
 	args := []string{
 		"listaccts",
@@ -557,4 +567,45 @@ func getReasonCreateEmailAccount(out string) (string, bool) {
 		return reason, true
 	}
 	return reason, false
+}
+
+// Get domain user data by domain
+func getDomainUserData(domain string) (CP_Data, bool) {
+	// Arguments
+	cpd := CP_Data{}
+	args := []string{
+		"domainuserdata",
+		"domain=" + URL_encode(domain),
+	}
+
+	// Run cmd
+	cmd := exec.Command(WHMAPI1, args...)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return cpd, false
+	}
+	// Unmarshal get user
+	err = yaml.Unmarshal([]byte(data), &cpd)
+	if err != nil {
+		return cpd, false
+	}
+	return cpd, true
+}
+
+// Add addon domain
+func addAddonDomain(user, domain string) ([]byte, error) {
+	// Arguments
+	args := []string{
+		"--user=" + URL_encode(user),
+		"AddonDomain",
+		"addaddondomain",
+		"dir=" + URL_encode(domain),
+		"newdomain=" + URL_encode(domain),
+		"subdomain=" + 
+	}
+
+	// Run cmd
+	cmd := exec.Command(CPAPI2, args...)
+	out, err := cmd.CombinedOutput()
+	return out, err
 }

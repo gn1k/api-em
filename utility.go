@@ -11,6 +11,7 @@ import (
 	"time"
 	"bufio"
 	"fmt"
+	"strconv"
 	"gopkg.in/yaml.v3"
 )
 
@@ -160,4 +161,26 @@ func readConfigAPI(file string) (ConfigAPI, error) {
 	decoder := yaml.NewDecoder(f)
 	err = decoder.Decode(&cfgapi)
 	return cfgapi, err
+}
+
+// Get subdomain
+func getSubdomain(domain string) string {
+	stringSlice := strings.Split(domain, ".")
+	return stringSlice[0]
+}
+
+// Simple check domain is an alias/addon *.em.vinahost.vn
+func checkDomainEm(domain string) bool {
+	if len(domain) <= 14 {
+		return false
+	}
+	last14  := domain[len(domain)-14:]
+	if last14 != "em.vinahost.vn" {
+		return false
+	}
+	sub := getSubdomain(domain)
+	if _, err := strconv.Atoi(sub); err != nil {
+		return false
+	}
+	return true
 }

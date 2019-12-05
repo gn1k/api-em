@@ -114,6 +114,16 @@ type Response struct {
 	Message			string			`json:"message"`
 }
 
+// Struct cpanel domainuserdata
+type CP_Data struct {
+	Data struct {
+		Userdata struct {
+			Documentroot	string			`yaml:"documentroot"`
+			Serveralias		string			`yaml:"serveralias"`
+		}									`yaml:"userdata"`
+	}										`yaml:"data"`
+}
+
 //----------------------------------------------------------
 // Global variables
 
@@ -294,9 +304,19 @@ func postHandler(c *gin.Context) {
 		cfg.map_cfgphp[SENDSTUDIO_DATABASE_USER] = prefix_db + "db"
 		cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME] = prefix_db + "db"
 
+		// Get domainuserdata of user domain
+		cpd, check := getDomainUserData(cfg.Domain)
+		if ! check || cpd.Data.Userdata.User == "" {
+			response.Success = false
+			response.Message = "Error get domain user data: " + cfg.User + " - " + cfg.Domain
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+
 		// Rsync skeleton
-		target := "/home/" + cfg.User + "/public_html/"
-		out, err = rsyncSkeleton(target)
+		//target := "/home/" + cfg.User + "/public_html/"
+		out, err = rsyncSkeleton(cpd.Data.Userdata.Documentroot)
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
@@ -463,7 +483,7 @@ func postHandler(c *gin.Context) {
 		}
 
 		// Run autoSSL - do exclude domain
-		out, err = doExcludeDomain(cfg.User, cfg.Domain, removeScheme(cfg.App_url))
+		out, err = doExcludeDomain(cfg.User, cfg.Domain, cpd.Data.Userdata.Serveralias)
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
@@ -494,14 +514,43 @@ func postHandler(c *gin.Context) {
 
 		// Create email account
 		stringSlice := strings.Split(cfg.Email, "@")
+		// Get email user
 		email_user := stringSlice[0]
-		out, err = createEmailAccount(cfg.User, cfg.Domain, email_user, cfg.map_cfgstorage[SMTP_PASSWORD])
+		if email_user == "" {
+			response.Success = false
+			response.Message = "Error create email account: Email user empty."
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		// Get email domain
+		email_domain := ""
+		if len(stringSlice) > 0 {
+			email_domain = stringSlice[1]
+		} else {
+			response.Success = false
+			response.Message = "Error get email domain: " + cfg.Email
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		// Get domainuserdata of email domain
+		cpd, check = getDomainUserData(email_domain)
+		if ! check || cpd.Data.Userdata.User == "" {
+			response.Success = false
+			response.Message = "Error get user of email domain: " + cfg.User + " - " + cfg.Email
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+
+		out, err = createEmailAccount(cpd.Data.Userdata.User, email_domain, email_user, cfg.map_cfgstorage[SMTP_PASSWORD])
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD] + ", " + err.Error()
+				response.Message = "Error create email account: " + cfg.User + " / " + cpd.Data.Userdata.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD] + ", " + err.Error()
 			} else {
-				response.Message = "Error create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD] + ", " + err.Error() + "\n" + string(out)
+				response.Message = "Error create email account: " + cfg.User + " / " + cpd.Data.Userdata.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD] + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -511,12 +560,12 @@ func postHandler(c *gin.Context) {
 		reason_out, check = getReasonCreateEmailAccount(string(out))
 		if check == false {
 			response.Success = false
-			response.Message = "Error create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD] + ", " + reason_out
+			response.Message = "Error create email account: " + cfg.User + " / " + cpd.Data.Userdata.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD] + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		} else {
-			response.Message = "Success create email account: " + cfg.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD]
+			response.Message = "Success create email account: " + cfg.User + " / " + cpd.Data.Userdata.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD]
 			writeAuditLog(response.Message)
 		}
 
