@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"gopkg.in/yaml.v3"
 )
 
 //----------------------------------------------------------
@@ -584,7 +585,7 @@ func getDomainUserData(domain string) (CP_Data, bool) {
 		return cpd, false
 	}
 	// Unmarshal get user
-	err = yaml.Unmarshal([]byte(data), &cpd)
+	err = yaml.Unmarshal([]byte(out), &cpd)
 	if err != nil {
 		return cpd, false
 	}
