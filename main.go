@@ -317,6 +317,7 @@ func postHandler(c *gin.Context) {
 
 		// Rsync skeleton
 		//target := "/home/" + cfg.User + "/public_html/"
+		target := cpd.Data.Userdata.Documentroot
 		out, err = rsyncSkeleton(cpd.Data.Userdata.Documentroot)
 		if err != nil {
 			response.Success = false
