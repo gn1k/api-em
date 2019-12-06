@@ -707,7 +707,7 @@ func postHandler(c *gin.Context) {
 				response.Message = "Error delete email account: Email user empty."
 				writeAuditLog(response.Message)
 			}
-			out, err = deleteEmailAccount(email_domain_user, email_domain, email_user)
+			out, err := deleteEmailAccount(email_domain_user, email_domain, email_user)
 			if err != nil {
 				response.Success = false
 				if string(out) == "" {
