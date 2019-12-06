@@ -693,7 +693,7 @@ func postHandler(c *gin.Context) {
 		}
 		// Get domainuserdata of email domain
 		if email_domain != cfg.Domain {
-			cpd, check = getDomainUserData(email_domain)
+			cpd, check := getDomainUserData(email_domain)
 			if ! check || cpd.Data.Userdata.User == "" {
 				response.Success = false
 				response.Message = "Error get user of email domain in terminate: " + cfg.User + " - " + cfg.Email
@@ -718,7 +718,7 @@ func postHandler(c *gin.Context) {
 				writeAuditLog(response.Message)
 			}
 			// Check create email account
-			reason_out, check = getReasonDeleteEmailAccount(string(out))
+			reason_out, check := getReasonDeleteEmailAccount(string(out))
 			if check == false {
 				response.Success = false
 				response.Message = "Error delete email account: " + cfg.User + " / " + email_domain_user + " - " + cfg.Email + ", " + reason_out
