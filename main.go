@@ -318,7 +318,7 @@ func postHandler(c *gin.Context) {
 		// Rsync skeleton
 		//target := "/home/" + cfg.User + "/public_html/"
 		target := cpd.Data.Userdata.Documentroot
-		out, err = rsyncSkeleton(cpd.Data.Userdata.Documentroot)
+		out, err = rsyncSkeleton(target)
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
@@ -531,28 +531,31 @@ func postHandler(c *gin.Context) {
 			email_domain = stringSlice[1]
 		} else {
 			response.Success = false
-			response.Message = "Error get email domain: " + cfg.Email
+			response.Message = "Error get email domain in create: " + cfg.Email
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		}
 		// Get domainuserdata of email domain
-		cpd, check = getDomainUserData(email_domain)
-		if ! check || cpd.Data.Userdata.User == "" {
-			response.Success = false
-			response.Message = "Error get user of email domain: " + cfg.User + " - " + cfg.Email
-			writeAuditLog(response.Message)
-			c.JSON(http.StatusOK, response)
-			return
+		email_domain_user := cfg.User
+		if email_domain != cfg.Domain {
+			cpd, check = getDomainUserData(email_domain)
+			if ! check || cpd.Data.Userdata.User == "" {
+				response.Success = false
+				response.Message = "Error get user of email domain in create: " + cfg.User + " - " + cfg.Email
+				writeAuditLog(response.Message)
+				c.JSON(http.StatusOK, response)
+				return
+			}
+			email_domain_user = cpd.Data.Userdata.User
 		}
-
-		out, err = createEmailAccount(cpd.Data.Userdata.User, email_domain, email_user, cfg.map_cfgstorage[SMTP_PASSWORD])
+		out, err = createEmailAccount(email_domain_user, email_domain, email_user, cfg.map_cfgstorage[SMTP_PASSWORD])
 		if err != nil {
 			response.Success = false
 			if string(out) == "" {
-				response.Message = "Error create email account: " + cfg.User + " / " + cpd.Data.Userdata.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD] + ", " + err.Error()
+				response.Message = "Error create email account: " + cfg.User + " / " + email_domain_user + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD] + ", " + err.Error()
 			} else {
-				response.Message = "Error create email account: " + cfg.User + " / " + cpd.Data.Userdata.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD] + ", " + err.Error() + "\n" + string(out)
+				response.Message = "Error create email account: " + cfg.User + " / " + email_domain_user + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD] + ", " + err.Error() + "\n" + string(out)
 			}
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
@@ -562,12 +565,12 @@ func postHandler(c *gin.Context) {
 		reason_out, check = getReasonCreateEmailAccount(string(out))
 		if check == false {
 			response.Success = false
-			response.Message = "Error create email account: " + cfg.User + " / " + cpd.Data.Userdata.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD] + ", " + reason_out
+			response.Message = "Error create email account: " + cfg.User + " / " + email_domain_user + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD] + ", " + reason_out
 			writeAuditLog(response.Message)
 			c.JSON(http.StatusOK, response)
 			return
 		} else {
-			response.Message = "Success create email account: " + cfg.User + " / " + cpd.Data.Userdata.User + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD]
+			response.Message = "Success create email account: " + cfg.User + " / " + email_domain_user + " - " + cfg.Email + " - " + cfg.map_cfgstorage[SMTP_PASSWORD]
 			writeAuditLog(response.Message)
 		}
 
@@ -675,6 +678,57 @@ func postHandler(c *gin.Context) {
 
 	// Action terminate/remove
 	if cfg.Action == "terminate" {
+		// Delete email account
+		stringSlice := strings.Split(cfg.Email, "@")
+		// Get email domain
+		email_domain := ""
+		if len(stringSlice) > 0 {
+			email_domain = stringSlice[1]
+		} else {
+			response.Success = false
+			response.Message = "Error get email domain in terminate: " + cfg.Email
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		}
+		// Get domainuserdata of email domain
+		if email_domain != cfg.Domain {
+			cpd, check = getDomainUserData(email_domain)
+			if ! check || cpd.Data.Userdata.User == "" {
+				response.Success = false
+				response.Message = "Error get user of email domain in terminate: " + cfg.User + " - " + cfg.Email
+				writeAuditLog(response.Message)
+			}
+			email_domain_user := cpd.Data.Userdata.User
+			// Get email user
+			email_user := stringSlice[0]
+			if email_user == "" {
+				response.Success = false
+				response.Message = "Error delete email account: Email user empty."
+				writeAuditLog(response.Message)
+			}
+			out, err = deleteEmailAccount(email_domain_user, email_domain, email_user)
+			if err != nil {
+				response.Success = false
+				if string(out) == "" {
+					response.Message = "Error delete email account: " + cfg.User + " / " + email_domain_user + " - " + cfg.Email + ", " + err.Error()
+				} else {
+					response.Message = "Error delete email account: " + cfg.User + " / " + email_domain_user + " - " + cfg.Email + ", " + err.Error() + "\n" + string(out)
+				}
+				writeAuditLog(response.Message)
+			}
+			// Check create email account
+			reason_out, check = getReasonDeleteEmailAccount(string(out))
+			if check == false {
+				response.Success = false
+				response.Message = "Error delete email account: " + cfg.User + " / " + email_domain_user + " - " + cfg.Email + ", " + reason_out
+				writeAuditLog(response.Message)
+			} else {
+				response.Message = "Success delete email account: " + cfg.User + " / " + email_domain_user + " - " + cfg.Email
+				writeAuditLog(response.Message)
+			}
+		}
+		
 		// Terminate/remove account
 		out, err := removeCpanelAccount(cfg.User)
 		if err != nil {

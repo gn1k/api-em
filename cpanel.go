@@ -168,17 +168,34 @@ func grantAllPrivileges(user, db, dbuser string) ([]byte, error) {
 	return out, err
 }
 
-// Create SMTP email account
-func createEmailAccount(user, domain, email, pass string) ([]byte, error) {
+// Create email account
+func createEmailAccount(user, domain, email_user, pass string) ([]byte, error) {
 	// Arguments
 	args := []string{
 		"--user=" + URL_encode(user),
 		"Email",
 		"addpop",
 		"domain=" + URL_encode(domain),
-		"email=" + URL_encode(email),
+		"email=" + URL_encode(email_user),
 		"password=" + URL_encode(pass),
 		"quota=unlimited",
+	}
+
+	// Run cmd
+	cmd := exec.Command(CPAPI2, args...)
+	out, err := cmd.CombinedOutput()
+	return out, err
+}
+
+// Delete email account
+func deleteEmailAccount(user, domain, email_user string) ([]byte, error) {
+	// Arguments
+	args := []string{
+		"--user=" + URL_encode(user),
+		"Email",
+		"delpop",
+		"domain=" + URL_encode(domain),
+		"email=" + URL_encode(email_user),
 	}
 
 	// Run cmd
@@ -561,6 +578,16 @@ func getReasonAddAliasDomain(out string) (string, bool) {
 
 // Get reason createEmailAccount success or not
 func getReasonCreateEmailAccount(out string) (string, bool) {
+	re := regexp.MustCompile(`.*error: .*`)
+	reason := re.FindString(out)
+	if reason == "" {
+		return reason, true
+	}
+	return reason, false
+}
+
+// Get reason deleteEmailAccount success or not
+func getReasonDeleteEmailAccount(out string) (string, bool) {
 	re := regexp.MustCompile(`.*error: .*`)
 	reason := re.FindString(out)
 	if reason == "" {
