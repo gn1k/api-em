@@ -234,7 +234,7 @@ func addAliasDomain(user, domain string) ([]byte, error) {
 // Get exclude domain SSL
 func getExcludeDomain(domain, serveralias string) (string) {
 	alias_arr := strings.Split(serveralias, " ")
-	output := domain + ",cpanel." + domain + ",webmail." + domain + ",webdisk."
+	output := domain + ",cpanel." + domain + ",webmail." + domain + ",webdisk." + domain
 	for i := 0; i < len(alias_arr) - 1; i++ {
 		if ! checkDomainEm(alias_arr[i]) {
 			output = output + "," + alias_arr[i]
