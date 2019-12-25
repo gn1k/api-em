@@ -870,17 +870,17 @@ func main() {
 	fmt.Println(cpd.Data.Userdata.Serveralias)
 	fmt.Println(getExcludeDomain(cfg.Domain, cpd.Data.Userdata.Serveralias))
 
-	// out, err := doExcludeDomain(cfg.User, cfg.Domain, cpd.Data.Userdata.Serveralias)
-	// if err != nil {
-	// 	response.Success = false
-	// 	if string(out) == "" {
-	// 		response.Message = "Error do exclude autoSSL: " + cfg.User + ", " + err.Error()
-	// 	} else {
-	// 		response.Message = "Error do exclude autoSSL: " + cfg.User + ", " + err.Error() + "\n" + string(out)
-	// 	}
-	// 	fmt.Println(response.Message)
-	// 	return
-	// }
+	out, err := doExcludeDomain(cfg.User, cfg.Domain, cpd.Data.Userdata.Serveralias)
+	if err != nil {
+		response.Success = false
+		if string(out) == "" {
+			response.Message = "Error do exclude autoSSL: " + cfg.User + ", " + err.Error()
+		} else {
+			response.Message = "Error do exclude autoSSL: " + cfg.User + ", " + err.Error() + "\n" + string(out)
+		}
+		fmt.Println(response.Message)
+		return
+	}
 
 	return
 
