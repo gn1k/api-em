@@ -840,6 +840,51 @@ func main() {
 		Cfg_API.Credential.User: Cfg_API.Credential.Password,
 	}))
 
+	var cfg ConfigInfo
+	var response Response
+
+	cfg.User = "nilclxpy"
+	cfg.Password = "xxxx"
+	cfg.Domain = "propertyx4.com.vn"
+	cfg.Email = "giap.buivan@propertyx.com.vn"
+	cfg.App_url = "https://26252.em.vinahost.vn"
+
+	// Generate configure
+	cfg.map_cfgphp = make(map[string]string)
+	cfg.map_cfgphp[SENDSTUDIO_DATABASE_PASS] = StringRand(16)
+	
+	cfg.map_cfgstorage = make(map[string]string)
+	cfg.map_cfgstorage[SMTP_USERNAME] = cfg.Email
+	cfg.map_cfgstorage[SMTP_PASSWORD] = StringRand(16)
+	cfg.map_cfgstorage[EMAIL_ADDRESS] = cfg.Email
+
+	// Get domainuserdata of user domain
+	cpd, check := getDomainUserData(cfg.Domain)
+	if ! check || cpd.Data.Userdata.User == "" {
+		response.Success = false
+		response.Message = "Error get domain user data: " + cfg.User + " - " + cfg.Domain
+		writeAuditLog(response.Message)
+		c.JSON(http.StatusOK, response)
+		return
+	}
+
+	fmt.Println(cpd.Data.Userdata.Serveralias)
+
+	out, err = doExcludeDomain(cfg.User, cfg.Domain, cpd.Data.Userdata.Serveralias)
+	if err != nil {
+		response.Success = false
+		if string(out) == "" {
+			response.Message = "Error do exclude autoSSL: " + cfg.User + ", " + err.Error()
+		} else {
+			response.Message = "Error do exclude autoSSL: " + cfg.User + ", " + err.Error() + "\n" + string(out)
+		}
+		writeAuditLog(response.Message)
+		c.JSON(http.StatusOK, response)
+		return
+	}
+
+	return
+
 	authorized.POST("/", postHandler)
 	router.RunTLS(Cfg_API.Bind_Port, Cfg_API.SSL.Cert, Cfg_API.SSL.Key)
 }
