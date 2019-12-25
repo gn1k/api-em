@@ -277,6 +277,24 @@ func postHandler(c *gin.Context) {
 			writeAuditLog(response.Message)
 		}
 
+		// Create alias
+		alias := removeScheme(cfg.App_url)
+		out, err = addAliasDomain(cfg.User, alias)
+		if err != nil {
+			response.Success = false
+			if string(out) == "" {
+				response.Message = "Error add alias: " + cfg.User + " - " + alias + ", " + err.Error()
+			} else {
+				response.Message = "Error add alias: " + cfg.User + " - " + alias + ", " + err.Error() + "\n" + string(out)
+			}
+			writeAuditLog(response.Message)
+			c.JSON(http.StatusOK, response)
+			return
+		} else {
+			response.Message = "Success add alias: " + cfg.User + " - " + alias
+			writeAuditLog(response.Message)
+		}
+
 		// Get restriction
 		out, err = getRestrictionAccount(cfg.User)
 		if err != nil {
@@ -463,24 +481,6 @@ func postHandler(c *gin.Context) {
 			return
 		} else {
 			response.Message = "Success import database: " + cfg.map_cfgphp[SENDSTUDIO_DATABASE_NAME]
-			writeAuditLog(response.Message)
-		}
-		
-		// Create alias
-		alias := removeScheme(cfg.App_url)
-		out, err = addAliasDomain(cfg.User, alias)
-		if err != nil {
-			response.Success = false
-			if string(out) == "" {
-				response.Message = "Error add alias: " + cfg.User + " - " + alias + ", " + err.Error()
-			} else {
-				response.Message = "Error add alias: " + cfg.User + " - " + alias + ", " + err.Error() + "\n" + string(out)
-			}
-			writeAuditLog(response.Message)
-			c.JSON(http.StatusOK, response)
-			return
-		} else {
-			response.Message = "Success add alias: " + cfg.User + " - " + alias
 			writeAuditLog(response.Message)
 		}
 
