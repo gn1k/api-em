@@ -863,14 +863,13 @@ func main() {
 	if ! check || cpd.Data.Userdata.User == "" {
 		response.Success = false
 		response.Message = "Error get domain user data: " + cfg.User + " - " + cfg.Domain
-		writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
+		fmt.Println(response.Message)
 		return
 	}
 
 	fmt.Println(cpd.Data.Userdata.Serveralias)
 
-	out, err = doExcludeDomain(cfg.User, cfg.Domain, cpd.Data.Userdata.Serveralias)
+	out, err := doExcludeDomain(cfg.User, cfg.Domain, cpd.Data.Userdata.Serveralias)
 	if err != nil {
 		response.Success = false
 		if string(out) == "" {
@@ -878,8 +877,7 @@ func main() {
 		} else {
 			response.Message = "Error do exclude autoSSL: " + cfg.User + ", " + err.Error() + "\n" + string(out)
 		}
-		writeAuditLog(response.Message)
-		c.JSON(http.StatusOK, response)
+		fmt.Println(response.Message)
 		return
 	}
 
