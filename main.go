@@ -868,7 +868,7 @@ func main() {
 	}
 
 	fmt.Println(cpd.Data.Userdata.Serveralias)
-	fmt.Println(getExcludeDomain(domain, cpd.Data.Userdata.Serveralias))
+	fmt.Println(getExcludeDomain(cfg.Domain, cpd.Data.Userdata.Serveralias))
 
 	// out, err := doExcludeDomain(cfg.User, cfg.Domain, cpd.Data.Userdata.Serveralias)
 	// if err != nil {
