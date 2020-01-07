@@ -4,14 +4,18 @@
 1. Install golang
 2. Install packages
 
-go get -u github.com/gin-gonic/gin
-go get -u github.com/go-sql-driver/mysql
-go get gopkg.in/yaml.v3
-go get github.com/gin-contrib/sse
+	go get -u github.com/gin-gonic/gin
+
+	go get -u github.com/go-sql-driver/mysql
+
+	go get gopkg.in/yaml.v3
+
+	go get github.com/gin-contrib/sse
 
 3. To build
 
 	cd api-em
+
 	go build
   
 4. To run
