@@ -108,8 +108,8 @@ func URL_encode(str string) string {
 
 // Remove ', ();
 func removeWeirdCharacter(str string) string {
-	out := strings.Replace(out, "');", "", 1)
-	out = strings.Replace(str, " '", "", 1)
+	out := strings.Replace(str, "');", "", 1)
+	out = strings.Replace(out, " '", "", 1)
 	return out
 }
 
