@@ -26,4 +26,4 @@
 
 6. Example create
 
-	curl -k --request POST --user 'admin:uJgLXsQRrX' --data '{"action":"create","user":"user1","password":"xxxx","domain":"domain.com","email":"info@domain.com","app_url":"https://26344.em.vinahost.vn","pkgname":"Gold","add_email_block":0}' https://em.vinahost.vn:2019
+	curl -k --request POST --user 'admin:XXXXXXXX' --data '{"action":"create","user":"user1","password":"xxxx","domain":"domain.com","email":"info@domain.com","app_url":"https://26344.em.vinahost.vn","pkgname":"Gold","add_email_block":0}' https://em.vinahost.vn:2019
