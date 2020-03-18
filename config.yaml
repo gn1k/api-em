@@ -12,7 +12,7 @@ Skeleton: "/home/vinahost/cpanel3-skel/public_html"
 # Credential login api
 Credential:
         user: "admin"
-        password: "uJgLXsQRrX"
+        password: "XXXXXXXXXX"
 
 # API listen port
 Bind_Port: ":2019"
