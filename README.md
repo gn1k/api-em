@@ -24,8 +24,6 @@
   
 5. Doc API
 
-	https://docs.google.com/document/d/13Fq6XpkfrGg9RpgKjmnOAcaq9GO88BIuQYwjNMRkAVA/edit?usp=sharing
-
 6. Example create
 
 	curl -k --request POST --user 'admin:uJgLXsQRrX' --data '{"action":"create","user":"user1","password":"xxxx","domain":"domain.com","email":"info@domain.com","app_url":"https://26344.em.vinahost.vn","pkgname":"Gold","add_email_block":0}' https://em.vinahost.vn:2019
