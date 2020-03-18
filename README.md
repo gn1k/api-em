@@ -5,23 +5,23 @@
 2. Install packages
 
 ```bash
-	go get -u github.com/gin-gonic/gin
-	go get -u github.com/go-sql-driver/mysql
-	go get gopkg.in/yaml.v3
-	go get github.com/gin-contrib/sse
+go get -u github.com/gin-gonic/gin
+go get -u github.com/go-sql-driver/mysql
+go get gopkg.in/yaml.v3
+go get github.com/gin-contrib/sse
 ```
 
 3. To build
 
 ```bash
-	cd api-em
-	go build
+cd api-em
+go build
 ```
 
 4. To run
 
 ```bash
-	./api-em
+./api-em
 ```
 
 5. Doc API
